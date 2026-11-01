@@ -23,14 +23,14 @@ export const CreditSimulator: React.FC<CreditSimulatorProps> = ({
   selectedLotPrice,
   selectedLotNumber
 }) => {
-  // 1. Land price: fixed at $8,000 USD for every mini-quinta in the project (no variable pricing)
-  const precioTerreno = 8000;
+  // 1. Land price: fixed at $9,000 USD for every mini-quinta in the project (no variable pricing)
+  const precioTerreno = 9000;
 
   // 2. Initial payment mode (amount is always derived from precioTerreno, see cuotaInicialMonto below)
   const [modalidadInicial, setModalidadInicial] = useState<'contado' | 'diferido_3m'>('diferido_3m');
 
   // 3. Financing term: 1 to 8 years (12 to 96 months)
-  const [plazoAnios, setPlazoAnios] = useState<number>(5);
+  const [plazoAnios, setPlazoAnios] = useState<number>(3);
 
   // 4. Lead Form States
   const [clienteNombre, setClienteNombre] = useState('');
@@ -243,18 +243,18 @@ export const CreditSimulator: React.FC<CreditSimulatorProps> = ({
               </div>
             </div>
 
-            {/* 4. Plazo de Financiamiento del Saldo (1 a 8 Años con 10% de Interés Anual) */}
+            {/* 4. Plazo de Financiamiento del Saldo (2 o 3 Años con 10% de Interés Anual) */}
             <div className="space-y-4 pt-4 border-t border-slate-700">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
                 <label className="text-sm font-bold text-slate-200 uppercase tracking-wider flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-sky-400" />
-                  4. Plazo de Financiamiento (1 a 8 Años • Tasa 10% Anual)
+                  4. Plazo de Financiamiento (2 o 3 Años • Tasa 10% Anual)
                 </label>
                 <span className="text-xs font-bold text-teal-400">Saldo: ${saldoRestante.toLocaleString()} USD</span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                {[1, 2, 3, 4, 5, 6, 7, 8].map((anios) => {
+              <div className="grid grid-cols-2 gap-2.5">
+                {[2, 3].map((anios) => {
                   const meses = anios * 12;
                   const fInteres = Math.pow(1 + tasaMensual, meses);
                   const cuota = saldoRestante > 0 ? (saldoRestante * (tasaMensual * fInteres)) / (fInteres - 1) : 0;
@@ -271,7 +271,7 @@ export const CreditSimulator: React.FC<CreditSimulatorProps> = ({
                           : 'bg-slate-900/60 border-slate-700 text-slate-300 hover:border-slate-500'
                       }`}
                     >
-                      {anios === 5 && (
+                      {anios === 3 && (
                         <span className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.2 rounded bg-emerald-500 text-slate-950 text-[9px] font-black uppercase">
                           RECOMENDADO
                         </span>

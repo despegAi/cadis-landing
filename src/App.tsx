@@ -50,7 +50,7 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
 
   // Selected Lot for direct simulation preload
-  const [selectedLotPrice, setSelectedLotPrice] = useState<number>(8000);
+  const [selectedLotPrice, setSelectedLotPrice] = useState<number>(9000);
   const [selectedLotNumber, setSelectedLotNumber] = useState<string>('Lote RB-01');
 
   // Toast Notification State

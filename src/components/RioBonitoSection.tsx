@@ -296,7 +296,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
               </h3>
 
               <p className="text-slate-300 text-sm leading-relaxed">
-                Históricamente, los proyectos con salida al río y servicios instalados duplican su valorización en los primeros 36 meses. Al adquirir tu Mini Quinta a precio de preventa desde <strong>$8,000 USD</strong>, aseguras tu patrimonio familiar con rentabilidad proyectada del 15% al 20% anual.
+                Históricamente, los proyectos con salida al río y servicios instalados duplican su valorización en los primeros 36 meses. Al adquirir tu Mini Quinta a precio de preventa desde <strong>$9,000 USD</strong>, aseguras tu patrimonio familiar con rentabilidad proyectada del 15% al 20% anual.
               </p>
 
               <div className="grid grid-cols-2 gap-4 pt-2">

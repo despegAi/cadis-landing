@@ -526,7 +526,7 @@ export const AdminPaymentScheduleTab: React.FC<AdminPaymentScheduleTabProps> = (
               {/* Header */}
               <div className="flex items-center justify-between border-b-2 border-[#009698] pb-3">
                 <div className="flex items-center gap-2">
-                  <img src="/assets/cadis_logotipo_oficial.jpg" alt="CADIS Logo" className="h-10 w-auto" />
+                  <img src="/assets/cadis_logotipo_tc.png" alt="CADIS Logo" className="h-10 w-auto" />
                   <div>
                     <h3 className="font-black text-sm text-[#009698]">CADIS BIENES RAÍCES</h3>
                     <p className="text-[10px] text-slate-500 font-bold uppercase">Servicios Inmobiliarios • Proyecto Río Bonito</p>

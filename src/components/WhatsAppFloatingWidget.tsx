@@ -54,7 +54,7 @@ interface ChatMessage {
 
 export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
   selectedLotNumber = 'Lote RB-01',
-  selectedLotPrice = 8000,
+  selectedLotPrice = 9000,
   selectedProperty = null,
   defaultIntent,
   onLogChatInteraction
@@ -106,7 +106,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
   // Predefined Automated Welcome Messages by Intent
   const getPredefinedWelcomeMessage = (intent: UserIntentType): string => {
     const lotName = selectedProperty?.loteNumero || selectedLotNumber || 'Lote RB-01';
-    const price = selectedProperty?.precio || selectedLotPrice || 8000;
+    const price = selectedProperty?.precio || selectedLotPrice || 9000;
     const initialDeposit = (price * 0.3).toLocaleString();
     const deferredMonthly = (price * 0.3 / 3).toFixed(0);
 
@@ -121,7 +121,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
         return `¡Hola! 👋 Veo que estás consultando sobre el **${lotName}** ($${price.toLocaleString()} USD en Proyecto Río Bonito). Te tengo listos los planos, medidas (${selectedProperty?.metraje || 500} m²) y el plan de cuota inicial en 3 meses ($${deferredMonthly} USD/mes). ¿Te gustaría agendar una visita o recibir la información oficial?`;
 
       case 'credit_simulation':
-        return `¡Hola! 💰 Has ingresado al canal de **Crédito Directo CADIS**. Te financiamos tu terreno campestre en Limoncito sin banco, sin garantes y con entrega inmediata pagando solo el 30% inicial en 3 cuotas. ¿Qué plazo de financiamiento (de 1 a 8 años) se acomoda a ti?`;
+        return `¡Hola! 💰 Has ingresado al canal de **Crédito Directo CADIS**. Te financiamos tu terreno campestre en Limoncito sin banco, sin garantes y con entrega inmediata pagando solo el 30% inicial en 3 cuotas. ¿Qué plazo de financiamiento (2 o 3 años) se acomoda a ti?`;
 
       case 'weekend_tour':
         return `¡Hola! 🚐 Organizamos **visitas guiadas gratuitas todos los Sábados y Domingos** rumbo a Limoncito (Proyecto Río Bonito). Contamos con transporte ida y vuelta y refrigerio para ti y tu familia. ¿Para qué día te gustaría asegurar cupos?`;
@@ -138,7 +138,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
   // Predefined Quick Response Prompts by Intent
   const currentQuickOptions = useMemo<QuickOption[]>(() => {
     const lotName = selectedProperty?.loteNumero || selectedLotNumber || 'Lote RB-01';
-    const price = selectedProperty?.precio || selectedLotPrice || 8000;
+    const price = selectedProperty?.precio || selectedLotPrice || 9000;
     const initial3m = (price * 0.3 / 3).toFixed(0);
 
     switch (activeIntent) {
@@ -156,8 +156,8 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
           },
           {
             id: 'lot-3',
-            title: `Consultar cuota mensual a 5 años`,
-            text: `Buenas tardes, quisiera saber cuál sería la cuota mensual a 5 años financiada para el saldo del ${lotName}.`
+            title: `Consultar cuota mensual a 3 años`,
+            text: `Buenas tardes, quisiera saber cuál sería la cuota mensual a 3 años financiada para el saldo del ${lotName}.`
           },
           {
             id: 'lot-4',
@@ -175,8 +175,8 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
           },
           {
             id: 'cred-2',
-            title: 'Tabla de cuotas a 5 y 8 años',
-            text: 'Hola, quisiera conocer la tabla de cuotas mensuales para financiar un terreno a 5 u 8 años sin intermediación bancaria.'
+            title: 'Tabla de cuotas a 2 y 3 años',
+            text: 'Hola, quisiera conocer la tabla de cuotas mensuales para financiar un terreno a 2 o 3 años sin intermediación bancaria.'
           },
           {
             id: 'cred-3',
@@ -228,8 +228,8 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
         return [
           {
             id: 'gen-1',
-            title: 'Mini Quintas de $8,000 USD en Limoncito',
-            text: '¡Hola CADIS! Me gustaría recibir información detallada sobre las Mini Quintas de $8,000 USD en el Proyecto Río Bonito.'
+            title: 'Mini Quintas de $9,000 USD en Limoncito',
+            text: '¡Hola CADIS! Me gustaría recibir información detallada sobre las Mini Quintas de $9,000 USD en el Proyecto Río Bonito.'
           },
           {
             id: 'gen-2',
