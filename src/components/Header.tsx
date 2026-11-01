@@ -67,7 +67,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAdmin, adminLeadsCount }) 
             className="flex items-center gap-2 group focus:outline-none"
             id="brand-logo-link"
           >
-            <CadisLogo size="md" />
+            <CadisLogo size="md" className="bg-white px-2 py-1 rounded-lg" />
           </a>
 
           {/* Desktop Navigation organized into 3 Main Functional Areas */}

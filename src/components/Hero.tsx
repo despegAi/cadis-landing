@@ -11,14 +11,14 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ onGoToSimulator, onGoToProperties }) => {
   return (
-    <section id="inicio" className="relative scroll-mt-28 pt-12 pb-16 md:pt-16 md:pb-24 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50">
+    <section id="inicio" className="relative scroll-mt-28 pt-8 pb-16 md:pt-10 md:pb-24 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50">
       {/* Subtle architectural background grid */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#0f172a08_1px,transparent_1px),linear-gradient(to_bottom,#0f172a08_1px,transparent_1px)] bg-[size:4rem_4rem] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Logotipo oficial CADIS con presencia de marca imponente en la parte superior del Hero */}
-        <div className="flex justify-center mb-10">
-          <CadisLogo size="2xl" />
+        <div className="flex justify-center mb-8 md:mb-10">
+          <CadisLogo size="hero" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
@@ -30,9 +30,9 @@ export const Hero: React.FC<HeroProps> = ({ onGoToSimulator, onGoToProperties })
             </h1>
 
             <p className="text-2xl sm:text-3xl font-black text-slate-900">
-              $8,000 USD
+              $9,000 USD
               <span className="block sm:inline sm:ml-2 text-base sm:text-lg font-bold text-slate-600">
-                Cuota inicial 30% = $2,400 USD
+                Cuota inicial 30% = $2,700 USD
               </span>
             </p>
 

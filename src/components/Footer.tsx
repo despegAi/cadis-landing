@@ -28,7 +28,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
           {/* Brand Info (2 cols) */}
           <div className="lg:col-span-2 space-y-4">
-            <CadisLogo size="md" />
+            <CadisLogo size="md" className="bg-white px-2 py-1 rounded-lg" />
             <p className="text-xs text-slate-400 leading-relaxed pr-6 italic">
               "Conectamos oportunidades inmobiliarias con el futuro de la familia cruceña"
             </p>
@@ -85,13 +85,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdmin }) => {
                 <a href="#rio-bonito" className="hover:text-white transition-colors">Proyecto Río Bonito (Limoncito)</a>
               </li>
               <li>
-                <a href="#simulador" className="hover:text-white transition-colors">Simulador de Crédito (1 a 8 Años)</a>
+                <a href="#simulador" className="hover:text-white transition-colors">Simulador de Crédito (2 o 3 Años)</a>
               </li>
               <li>
                 <a href="#propiedades" className="hover:text-white transition-colors">Mapa de Lotes y Precios</a>
               </li>
-              <li>Terrenos desde $8,000 USD</li>
-              <li>Cuota Inicial del 30% ($2,400 USD desde)</li>
+              <li>Terrenos desde $9,000 USD</li>
+              <li>Cuota Inicial del 30% ($2,700 USD desde)</li>
             </ul>
           </div>
 

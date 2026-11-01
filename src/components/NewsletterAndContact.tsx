@@ -307,7 +307,7 @@ export const NewsletterAndContact: React.FC<NewsletterAndContactProps> = ({
               </p>
               <div className="flex flex-wrap gap-2 pt-1">
                 {[
-                  { label: '💰 Lotes de $8,000 USD', msg: 'Hola, me interesa conocer la disponibilidad de los lotes de $8,000 USD' },
+                  { label: '💰 Lotes de $9,000 USD', msg: 'Hola, me interesa conocer la disponibilidad de los lotes de $9,000 USD' },
                   { label: '🚌 Visitas de Fin de Semana', msg: 'Hola CADIS, quiero reservar lugar para la visita guiada a Limoncito' },
                   { label: '📄 Crédito Directo en 3 meses', msg: 'Hola, quisiera información sobre el plan de cuota inicial en 3 meses' },
                   { label: '📍 Ubicación GPS en tiempo real', msg: 'Hola, me gustaría que me envíen la ubicación GPS de Río Bonito por WhatsApp' }

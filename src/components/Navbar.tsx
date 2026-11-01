@@ -29,7 +29,7 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
         <a href="#inicio" className="shrink-0">
           {/* Tamaño corporativo estándar (h-12) para no ocupar demasiado espacio al hacer scroll */}
-          <CadisLogo size="md" />
+          <CadisLogo size="md" className="bg-white px-2 py-1 rounded-lg" />
         </a>
 
         <nav className="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-200">

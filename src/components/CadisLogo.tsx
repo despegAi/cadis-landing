@@ -2,7 +2,7 @@ import React from 'react';
 
 interface CadisLogoProps {
   className?: string;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'hero';
 }
 
 // The official logo image already contains the "CADIS Bienes Raíces / Servicios
@@ -17,12 +17,14 @@ export const CadisLogo: React.FC<CadisLogoProps> = ({
     md: 'h-12',
     lg: 'h-16',
     xl: 'h-24',
-    '2xl': 'h-32'
+    '2xl': 'h-32',
+    // Portada: el logotipo es lo primero que se ve, grande y legible
+    hero: 'h-44 sm:h-56 lg:h-64'
   };
 
   return (
     <img
-      src="/assets/cadis_logotipo_oficial.jpg"
+      src="/assets/cadis_logotipo_tc.png"
       alt="CADIS BIENES RAÍCES Servicios Inmobiliarios"
       className={`${heightMap[size]} w-auto object-contain rounded-md select-none ${className}`}
       id="cadis-official-logo"

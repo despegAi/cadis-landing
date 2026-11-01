@@ -100,7 +100,7 @@ export const VendorRecruitment: React.FC<VendorRecruitmentProps> = ({ onRegister
                 <div>
                   <h4 className="text-sm font-extrabold text-slate-900">Cierre de Ventas Fácil con Crédito Directo</h4>
                   <p className="text-xs text-slate-600 mt-0.5">
-                    Nuestros terrenos desde $8,000 USD y cuota inicial en 3 meses garantizan un cierre de ventas acelerado para tus clientes.
+                    Nuestros terrenos desde $9,000 USD y cuota inicial en 3 meses garantizan un cierre de ventas acelerado para tus clientes.
                   </p>
                 </div>
               </div>
