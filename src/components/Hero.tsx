@@ -2,6 +2,7 @@ import React from 'react';
 import { Calculator, Compass } from 'lucide-react';
 import { Property } from '../types';
 import { CadisLogo } from './CadisLogo';
+import { SITE_IMAGE_SLOTS, getSiteImageUrl } from '../config/siteImages';
 
 interface HeroProps {
   properties: Property[];
@@ -57,49 +58,15 @@ export const Hero: React.FC<HeroProps> = ({ onGoToSimulator, onGoToProperties })
             </div>
           </div>
 
-          {/* Reference Image Gallery Column: 4 high-res reference cards (nature, river, lots, lifestyle) */}
+          {/* Una sola foto principal (4:3). Editable desde el panel de administracion (ver config/siteImages.ts). */}
           <div className="lg:col-span-5">
-            <div className="grid grid-cols-2 gap-3 sm:gap-4">
-              {/* TODO: Reemplazar con imagen real en Git */}
-              <img
-                src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=700&q=80"
-                alt="Entorno natural y vegetación nativa en Río Bonito"
-                className="w-full h-40 sm:h-52 object-cover rounded-2xl shadow-lg border border-slate-100"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-              />
-
-              {/* TODO: Reemplazar con imagen real en Git */}
-              <img
-                src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=700&q=80"
-                alt="Río y playa natural del Proyecto Río Bonito"
-                className="w-full h-40 sm:h-52 object-cover rounded-2xl shadow-lg border border-slate-100"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-              />
-
-              {/* TODO: Reemplazar con imagen real en Git */}
-              <img
-                src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=700&q=80"
-                alt="Lotes campestres y mini quintas en Limoncito"
-                className="w-full h-40 sm:h-52 object-cover rounded-2xl shadow-lg border border-slate-100"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-              />
-
-              {/* TODO: Reemplazar con imagen real en Git */}
-              <img
-                src="https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=700&q=80"
-                alt="Estilo de vida campestre en casa de campo"
-                className="w-full h-40 sm:h-52 object-cover rounded-2xl shadow-lg border border-slate-100"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-              />
-            </div>
+            <img
+              src={getSiteImageUrl('heroPhoto')}
+              alt={SITE_IMAGE_SLOTS.heroPhoto.alt}
+              className="w-full aspect-[4/3] object-cover rounded-3xl shadow-xl border border-slate-100"
+              referrerPolicy="no-referrer"
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+            />
           </div>
         </div>
       </div>

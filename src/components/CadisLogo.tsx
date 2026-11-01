@@ -19,7 +19,7 @@ export const CadisLogo: React.FC<CadisLogoProps> = ({
     xl: 'h-24',
     '2xl': 'h-32',
     // Portada: el logotipo es lo primero que se ve, grande y legible
-    hero: 'h-44 sm:h-56 lg:h-64'
+    hero: 'h-56 sm:h-72 lg:h-96'
   };
 
   return (
