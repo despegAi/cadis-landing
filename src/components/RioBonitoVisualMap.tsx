@@ -1,15 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Property, LotReservationRequest } from '../types';
 import { CADIS_WHATSAPP_NUMBER } from '../config/contact';
-import {
-  MapPin,
-  Layers,
-  ExternalLink,
-  CalendarCheck,
-  ShoppingBag,
-  BookmarkPlus,
-  Info
-} from 'lucide-react';
+import { LOT_POLYGONS, MAP_SIZE } from '../data/lotPolygons';
+import { LOTS, LOT_PRICE_USD, LotInfo, LotStatus } from '../data/lotStates';
+import { Layers, CalendarCheck, ShoppingBag, BookmarkPlus, X, MousePointerClick } from 'lucide-react';
 
 interface RioBonitoVisualMapProps {
   properties: Property[];
@@ -17,334 +11,262 @@ interface RioBonitoVisualMapProps {
   onSaveReservation: (data: Omit<LotReservationRequest, 'id' | 'fecha' | 'estado'>) => void;
 }
 
-interface LotMarker {
-  propId: string;
-  // Position as a percentage of the plano image, calibrated by eye against
-  // public/assets/artevld.jpg. Re-calibrate visually in-browser if the lots
-  // ever look off relative to the real drawing.
-  xPercent: number;
-  yPercent: number;
-}
-
-// Only the 8 curated Property records get a marker. The real plano
-// (public/assets/artevld.jpg) shows ~27 raw survey lots across two manzanas,
-// but CADIS's actual sellable inventory is these 8 named mini-quintas — we
-// deliberately do not fabricate polygon boundaries for lots that aren't part
-// of the real catalog.
-const LOT_MARKERS: LotMarker[] = [
-  { propId: 'prop-1', xPercent: 19, yPercent: 27 },
-  { propId: 'prop-2', xPercent: 29, yPercent: 21 },
-  { propId: 'prop-3', xPercent: 22, yPercent: 40 },
-  { propId: 'prop-4', xPercent: 33, yPercent: 33 },
-  { propId: 'prop-5', xPercent: 35, yPercent: 63 },
-  { propId: 'prop-6', xPercent: 45, yPercent: 69 },
-  { propId: 'prop-7', xPercent: 28, yPercent: 74 },
-  { propId: 'prop-8', xPercent: 41, yPercent: 59 }
-];
-
 type LotAction = 'reservar' | 'comprar' | 'agendar_visita';
 
-const ACTION_LABELS: Record<LotAction, string> = {
-  reservar: 'Reservar',
-  comprar: 'Comprar',
-  agendar_visita: 'Agendar Cita'
+const STATUS_STYLE: Record<LotStatus, { fill: string; stroke: string; label: string; dot: string }> = {
+  disponible: { fill: 'rgba(34,197,94,0.55)', stroke: '#bbf7d0', label: 'Disponible', dot: 'bg-emerald-500' },
+  reservado: { fill: 'rgba(251,146,60,0.65)', stroke: '#fed7aa', label: 'Reservado', dot: 'bg-orange-400' },
+  vendido: { fill: 'rgba(56,189,248,0.55)', stroke: '#bae6fd', label: 'Vendido', dot: 'bg-sky-400' }
 };
 
-export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({
-  properties,
-  onScrollToProperty,
-  onSaveReservation
-}) => {
-  const [hoveredLotId, setHoveredLotId] = useState<string | null>(null);
-  const [activeLotId, setActiveLotId] = useState<string | null>(null);
+// Centro aproximado de cada lote (promedio de sus vertices) para colocar el numero.
+const centroid = (pts: [number, number][]): [number, number] => {
+  const n = pts.length;
+  return [pts.reduce((s, p) => s + p[0], 0) / n, pts.reduce((s, p) => s + p[1], 0) / n];
+};
 
-  const activeProperty = properties.find((p) => p.id === activeLotId);
-  const hoveredProperty = properties.find((p) => p.id === hoveredLotId);
-  const cardProperty = hoveredProperty || activeProperty;
+const lotLabel = (lot: LotInfo) => `${lot.manzana}-${String(lot.numero).padStart(2, '0')}`;
 
-  const handleMarkerClick = (propertyId: string) => {
-    setActiveLotId((prev) => (prev === propertyId ? null : propertyId));
-  };
+export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveReservation }) => {
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const handleLotAction = (property: Property, accion: LotAction) => {
-    const actionText =
+  const centers = useMemo(() => {
+    const out: Record<string, [number, number]> = {};
+    Object.entries(LOT_POLYGONS).forEach(([id, pts]) => {
+      out[id] = centroid(pts);
+    });
+    return out;
+  }, []);
+
+  const counts = useMemo(
+    () => ({
+      disponible: LOTS.filter((l) => l.estado === 'disponible').length,
+      reservado: LOTS.filter((l) => l.estado === 'reservado').length,
+      vendido: LOTS.filter((l) => l.estado === 'vendido').length
+    }),
+    []
+  );
+
+  const selected = LOTS.find((l) => l.id === selectedId) || null;
+  const inicial = LOT_PRICE_USD * 0.3;
+
+  const handleAction = (lot: LotInfo, accion: LotAction) => {
+    const verbo =
       accion === 'reservar'
-        ? `quiero *reservar* el ${property.loteNumero}`
+        ? 'quiero *reservar*'
         : accion === 'comprar'
-        ? `quiero *comprar* el ${property.loteNumero}`
-        : `quiero *agendar una visita* al ${property.loteNumero}`;
-
-    const message = `Hola CADIS, vi el plano interactivo de Río Bonito y ${actionText} (${property.titulo}, $${property.precio.toLocaleString()} USD).`;
-
-    onSaveReservation({ loteNumero: property.loteNumero, accion, origen: 'mapa_interactivo' });
-
+        ? 'quiero *comprar*'
+        : 'quiero *agendar una visita* a';
+    const message = `Hola CADIS, vi el mapa interactivo de Río Bonito y ${verbo} el lote ${lotLabel(lot)} (${lot.superficieM2.toLocaleString('es-BO')} m², $${LOT_PRICE_USD.toLocaleString()} USD).`;
+    onSaveReservation({ loteNumero: lotLabel(lot), accion, origen: 'mapa_interactivo' });
     window.open(`https://wa.me/${CADIS_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
-    setActiveLotId(null);
   };
 
   return (
-    <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl space-y-6 relative overflow-hidden">
-      {/* Decorative ambient lighting */}
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5 relative z-10">
+    <div className="bg-slate-900 text-white rounded-3xl p-5 sm:p-8 border border-slate-800 shadow-2xl space-y-5 relative overflow-hidden">
+      {/* Encabezado */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
             <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               <Layers className="w-4 h-4" />
             </span>
-            <span className="text-xs font-black uppercase tracking-wider text-emerald-400">
-              Plano Oficial de Loteamiento
-            </span>
+            <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Mapa de lotes · Fase 1</span>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Plano y Distribución de Mini Quintas
-          </h3>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
-            Este es el plano de mensura real del Proyecto Río Bonito en Limoncito.
-            <strong className="text-emerald-400 font-semibold"> Haz clic en cualquier marcador</strong> para reservar, comprar o agendar una visita directo por WhatsApp.
+          <h3 className="text-2xl sm:text-3xl font-black tracking-tight">Elige tu lote y resérvalo</h3>
+          <p className="text-sm text-slate-400 mt-1 max-w-2xl flex items-start gap-1.5">
+            <MousePointerClick className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" />
+            <span>
+              Toca un lote <strong className="text-emerald-400">verde</strong> para ver su precio y reservarlo por WhatsApp.
+            </span>
           </p>
         </div>
 
-        {/* Legend */}
+        {/* Leyenda con conteo */}
         <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-950/80 p-2.5 rounded-xl border border-slate-800 shrink-0">
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-emerald-500 shadow-xs shadow-emerald-500/50" />
-            <span className="text-slate-300 font-medium">Disponible</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-amber-400 shadow-xs shadow-amber-400/50" />
-            <span className="text-slate-300 font-medium">Reservado</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-slate-600" />
-            <span className="text-slate-400 font-medium">Vendido</span>
-          </div>
+          {(Object.keys(STATUS_STYLE) as LotStatus[]).map((s) => (
+            <div key={s} className="flex items-center gap-1.5">
+              <span className={`w-3 h-3 rounded-full ${STATUS_STYLE[s].dot}`} />
+              <span className="text-slate-200 font-semibold">
+                {STATUS_STYLE[s].label} <span className="text-slate-400 font-normal">({counts[s]})</span>
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Main Map Container: real plano image with overlaid HTML markers */}
-      <div className="relative rounded-2xl bg-slate-950 border border-slate-800/80 overflow-hidden shadow-inner">
-        <div className="relative w-full">
-          <img
-            src="/assets/artevld.jpg"
-            alt="Plano de Mensura Oficial del Proyecto Río Bonito en Limoncito"
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        {/* Mapa */}
+        <div className="lg:col-span-2 relative rounded-2xl bg-slate-950 border border-slate-800/80 overflow-hidden">
+          <svg
+            viewBox={`0 0 ${MAP_SIZE.width} ${MAP_SIZE.height}`}
             className="w-full h-auto block select-none"
-          />
+            role="img"
+            aria-label="Mapa interactivo de los lotes del Proyecto Río Bonito"
+          >
+            <image href="/assets/mapa_rio_bonito_base.jpg" width={MAP_SIZE.width} height={MAP_SIZE.height} />
 
-          {LOT_MARKERS.map((marker) => {
-            const prop = properties.find((p) => p.id === marker.propId);
-            if (!prop) return null;
-
-            const isHovered = hoveredLotId === marker.propId;
-            const isActive = activeLotId === marker.propId;
-            const isAvailable = prop.estado === 'disponible';
-            const isReserved = prop.estado === 'reservado';
-            const pinColor = isAvailable ? 'bg-emerald-500' : isReserved ? 'bg-amber-400' : 'bg-slate-500';
-            const ringColor = isAvailable ? 'ring-emerald-400' : isReserved ? 'ring-amber-300' : 'ring-slate-400';
-
-            return (
-              <div
-                key={marker.propId}
-                className="absolute -translate-x-1/2 -translate-y-1/2 z-10"
-                style={{ left: `${marker.xPercent}%`, top: `${marker.yPercent}%` }}
-              >
-                {/* Pulsing ring for available lots */}
-                {isAvailable && (
-                  <span className={`absolute inset-0 rounded-full ${ringColor} ring-2 opacity-70 ${isHovered || isActive ? 'animate-ping' : ''}`} />
-                )}
-
-                <button
-                  type="button"
-                  onClick={() => handleMarkerClick(marker.propId)}
-                  onMouseEnter={() => setHoveredLotId(marker.propId)}
-                  onMouseLeave={() => setHoveredLotId(null)}
-                  aria-label={`Ver opciones para ${prop.loteNumero}`}
-                  className={`relative flex items-center justify-center rounded-full border-2 border-white shadow-lg cursor-pointer transition-transform ${pinColor} ${
-                    isHovered || isActive ? 'w-9 h-9 scale-110' : 'w-7 h-7'
-                  }`}
+            {LOTS.map((lot) => {
+              const pts = LOT_POLYGONS[lot.id];
+              if (!pts) return null;
+              const st = STATUS_STYLE[lot.estado];
+              const isSel = selectedId === lot.id;
+              const isHover = hoveredId === lot.id;
+              const [cx, cy] = centers[lot.id];
+              return (
+                <g
+                  key={lot.id}
+                  className="cursor-pointer"
+                  onClick={() => setSelectedId(isSel ? null : lot.id)}
+                  onMouseEnter={() => setHoveredId(lot.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Lote ${lotLabel(lot)}, ${st.label}`}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedId(isSel ? null : lot.id);
+                    }
+                  }}
                 >
-                  <span className="text-[10px] font-black text-slate-950 font-mono select-none">
-                    {prop.loteNumero.replace('Lote RB-', '')}
-                  </span>
-                </button>
-
-                {/* Action Popover */}
-                {isActive && (
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 w-56 bg-slate-900 border border-emerald-500/40 rounded-xl shadow-2xl p-3 space-y-1.5 z-20 animate-in fade-in zoom-in-95 duration-150">
-                    <p className="text-xs font-black text-white text-center pb-1.5 border-b border-slate-700">
-                      {prop.loteNumero} · ${prop.precio.toLocaleString()} USD
-                    </p>
-                    {isAvailable ? (
-                      <>
-                        <button
-                          type="button"
-                          onClick={() => handleLotAction(prop, 'reservar')}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold cursor-pointer transition-colors"
-                        >
-                          <BookmarkPlus className="w-3.5 h-3.5" />
-                          <span>{ACTION_LABELS.reservar}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleLotAction(prop, 'comprar')}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold cursor-pointer transition-colors"
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5" />
-                          <span>{ACTION_LABELS.comprar}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleLotAction(prop, 'agendar_visita')}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold cursor-pointer transition-colors"
-                        >
-                          <CalendarCheck className="w-3.5 h-3.5" />
-                          <span>{ACTION_LABELS.agendar_visita}</span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-[11px] text-slate-400 text-center py-1">
-                          Este lote está {prop.estado}.
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => handleLotAction(prop, 'agendar_visita')}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold cursor-pointer transition-colors"
-                        >
-                          <CalendarCheck className="w-3.5 h-3.5" />
-                          <span>{ACTION_LABELS.agendar_visita}</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            onScrollToProperty(prop.id);
-                            setActiveLotId(null);
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-emerald-400 hover:text-emerald-300 text-xs font-bold cursor-pointer transition-colors"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Ver Lotes Similares</span>
-                        </button>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Hover / Active Floating Card Details */}
-        {cardProperty && (
-          <div className="absolute bottom-4 right-4 max-w-xs sm:max-w-sm bg-slate-900/95 backdrop-blur-md p-4 rounded-2xl border border-emerald-500/50 shadow-2xl animate-in fade-in slide-in-from-bottom-2 duration-200 z-20 hidden sm:block">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-mono text-xs font-black border border-emerald-500/40">
-                  {cardProperty.loteNumero}
-                </span>
-                <span
-                  className={`text-[10px] font-black uppercase px-2 py-0.5 rounded ${
-                    cardProperty.estado === 'disponible'
-                      ? 'bg-emerald-500 text-slate-950'
-                      : cardProperty.estado === 'reservado'
-                      ? 'bg-amber-400 text-slate-950'
-                      : 'bg-slate-700 text-slate-300'
-                  }`}
-                >
-                  {cardProperty.estado}
-                </span>
-              </div>
-              <span className="text-sm font-black text-emerald-400">
-                ${cardProperty.precio.toLocaleString()} USD
-              </span>
-            </div>
-
-            <h4 className="text-sm font-bold text-white mt-1.5 line-clamp-1">
-              {cardProperty.titulo}
-            </h4>
-
-            <p className="text-xs text-slate-400 mt-0.5">
-              Superficie: <strong className="text-slate-200">{cardProperty.metraje} m²</strong> ({cardProperty.dimensiones})
-            </p>
-
-            <div className="mt-3 pt-2.5 border-t border-slate-800 flex items-center justify-between">
-              <span className="text-[11px] text-slate-400">
-                Inicial (30%): <strong className="text-emerald-400">${(cardProperty.precio * 0.3).toLocaleString()} USD</strong>
-              </span>
-              <button
-                type="button"
-                onClick={() => onScrollToProperty(cardProperty.id)}
-                className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs inline-flex items-center gap-1 transition-all cursor-pointer shadow-xs"
-              >
-                <span>Ver Ficha</span>
-                <ExternalLink className="w-3 h-3" />
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Interactive Lot Chips for Quick Jump */}
-      <div className="pt-2">
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Info className="w-3.5 h-3.5 text-emerald-400" />
-            Acceso Rápido por Lote • Haz clic para navegar directamente:
-          </span>
-          <span className="text-[11px] text-slate-500">
-            {properties.length} lotes mapeados
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-          {properties.map((prop) => {
-            const isAvailable = prop.estado === 'disponible';
-            const isReserved = prop.estado === 'reservado';
-            const isHovered = hoveredLotId === prop.id;
-            const isActive = activeLotId === prop.id;
-
-            return (
-              <button
-                key={prop.id}
-                type="button"
-                onClick={() => onScrollToProperty(prop.id)}
-                onMouseEnter={() => setHoveredLotId(prop.id)}
-                onMouseLeave={() => setHoveredLotId(null)}
-                className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
-                  isActive || isHovered
-                    ? 'bg-emerald-600 text-white border-emerald-400 shadow-md scale-[1.03]'
-                    : isAvailable
-                    ? 'bg-slate-800/80 hover:bg-slate-800 border-slate-700 text-slate-200'
-                    : isReserved
-                    ? 'bg-amber-950/40 hover:bg-amber-900/50 border-amber-500/40 text-amber-200'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-black">
-                    {prop.loteNumero}
-                  </span>
-                  <span
-                    className={`w-2 h-2 rounded-full ${
-                      isAvailable ? 'bg-emerald-400' : isReserved ? 'bg-amber-400' : 'bg-slate-500'
-                    }`}
+                  <polygon
+                    points={pts.map((p) => p.join(',')).join(' ')}
+                    fill={st.fill}
+                    stroke={isSel ? '#ffffff' : st.stroke}
+                    strokeWidth={isSel ? 5 : isHover ? 4 : 2}
+                    strokeLinejoin="round"
+                    style={{ filter: isSel || isHover ? 'brightness(1.25)' : undefined, transition: 'all .15s' }}
                   />
+                  <text
+                    x={cx}
+                    y={cy}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize={26}
+                    fontWeight={800}
+                    fill="#fff"
+                    stroke="rgba(0,0,0,0.65)"
+                    strokeWidth={5}
+                    paintOrder="stroke"
+                    pointerEvents="none"
+                  >
+                    {lot.numero}
+                  </text>
+                </g>
+              );
+            })}
+
+            {/* Etiquetas de manzana */}
+            <text x={640} y={230} fontSize={44} fontWeight={900} fill="#fff" stroke="rgba(0,0,0,0.7)" strokeWidth={7} paintOrder="stroke" pointerEvents="none" opacity={0.9}>M2</text>
+            <text x={250} y={780} fontSize={44} fontWeight={900} fill="#fff" stroke="rgba(0,0,0,0.7)" strokeWidth={7} paintOrder="stroke" pointerEvents="none" opacity={0.9}>M1</text>
+          </svg>
+        </div>
+
+        {/* Panel del lote */}
+        <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-5 flex flex-col">
+          {selected ? (
+            <div className="space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Lote</p>
+                  <p className="text-3xl font-black font-mono">{lotLabel(selected)}</p>
                 </div>
-                <div className="text-[11px] font-bold mt-1 truncate">
-                  ${prop.precio.toLocaleString()} USD
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`text-[11px] font-black uppercase px-2.5 py-1 rounded ${
+                      selected.estado === 'disponible'
+                        ? 'bg-emerald-500 text-slate-950'
+                        : selected.estado === 'reservado'
+                        ? 'bg-orange-400 text-slate-950'
+                        : 'bg-sky-400 text-slate-950'
+                    }`}
+                  >
+                    {STATUS_STYLE[selected.estado].label}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(null)}
+                    aria-label="Cerrar"
+                    className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
-                <div className="text-[10px] text-slate-400 truncate">
-                  {prop.metraje} m²
+              </div>
+
+              <dl className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-slate-400">Superficie</dt>
+                  <dd className="font-bold">{selected.superficieM2.toLocaleString('es-BO')} m²</dd>
                 </div>
-              </button>
-            );
-          })}
+                <div className="flex justify-between">
+                  <dt className="text-slate-400">Precio</dt>
+                  <dd className="font-black text-emerald-400">${LOT_PRICE_USD.toLocaleString()} USD</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-slate-400">Inicial (30%)</dt>
+                  <dd className="font-bold">${inicial.toLocaleString()} USD</dd>
+                </div>
+              </dl>
+
+              {selected.estado === 'disponible' ? (
+                <div className="space-y-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleAction(selected, 'reservar')}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black cursor-pointer transition-colors"
+                  >
+                    <BookmarkPlus className="w-4 h-4" />
+                    <span>Reservar este lote</span>
+                  </button>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleAction(selected, 'comprar')}
+                      className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold cursor-pointer transition-colors"
+                    >
+                      <ShoppingBag className="w-3.5 h-3.5" />
+                      <span>Comprar</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleAction(selected, 'agendar_visita')}
+                      className="flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold cursor-pointer transition-colors"
+                    >
+                      <CalendarCheck className="w-3.5 h-3.5" />
+                      <span>Agendar visita</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2 pt-1">
+                  <p className="text-sm text-slate-400">
+                    Este lote está {selected.estado}. Mira los lotes verdes del mapa o consulta por otras opciones.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleAction(selected, 'agendar_visita')}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold cursor-pointer transition-colors"
+                  >
+                    <CalendarCheck className="w-3.5 h-3.5" />
+                    <span>Agendar visita al proyecto</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="m-auto text-center space-y-2 py-8">
+              <MousePointerClick className="w-8 h-8 mx-auto text-emerald-400" />
+              <p className="font-bold">Toca un lote en el mapa</p>
+              <p className="text-sm text-slate-400">
+                Verás su superficie, precio ${LOT_PRICE_USD.toLocaleString()} USD y podrás reservarlo.
+              </p>
+            </div>
+          )}
         </div>
       </div>
-
     </div>
   );
 };
