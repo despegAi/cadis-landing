@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase, IMAGES_TABLE } from './supabase';
 import { SiteImageSlot, getSiteImageUrl } from '../config/siteImages';
 
-type Overrides = Partial<Record<SiteImageSlot, string>>;
+type Overrides = Record<string, string>;
 
-// Se pide una sola vez por visita y se comparte entre componentes.
+// Se pide una sola vez por visita y se comparte entre todos los componentes.
 let cache: Overrides | null = null;
 let pending: Promise<Overrides> | null = null;
 
@@ -15,7 +15,7 @@ const load = (): Promise<Overrides> => {
     .then(({ data }) => {
       const out: Overrides = {};
       (data ?? []).forEach((r: { slot: string; url: string }) => {
-        out[r.slot as SiteImageSlot] = r.url;
+        out[r.slot] = r.url;
       });
       cache = out;
       return out;
@@ -29,17 +29,21 @@ export const clearSiteImagesCache = () => {
   pending = null;
 };
 
-/** URL de la foto de un espacio: la subida desde el panel, o la foto por defecto si no hay (o si falla la red). */
-export const useSiteImage = (slot: SiteImageSlot): string => {
-  const [url, setUrl] = useState(getSiteImageUrl(slot));
+/**
+ * URL de la foto de un espacio: la subida desde el panel; si no hay (o falla la red), `fallback`
+ * o la foto por defecto del espacio.
+ */
+export const useSiteImage = (slot: SiteImageSlot, fallback?: string): string => {
+  const base = fallback || getSiteImageUrl(slot);
+  const [override, setOverride] = useState<string | undefined>(cache?.[slot]);
   useEffect(() => {
     let alive = true;
     load().then((o) => {
-      if (alive) setUrl(getSiteImageUrl(slot, o));
+      if (alive) setOverride(o[slot]);
     });
     return () => {
       alive = false;
     };
   }, [slot]);
-  return url;
+  return override || base;
 };

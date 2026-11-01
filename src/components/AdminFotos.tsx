@@ -4,7 +4,7 @@ import { ImagePlus, LogOut, RotateCcw, Save, ArrowLeft, CheckCircle2, AlertCircl
 import { supabase, IMAGES_BUCKET, IMAGES_TABLE } from '../lib/supabase';
 import { clearSiteImagesCache } from '../lib/useSiteImages';
 import { DEFAULT_FIT, FitState, cropRect, exportFitted, loadImage } from '../lib/imageFit';
-import { SITE_IMAGE_SLOTS, SiteImageSlot, getSiteImageUrl } from '../config/siteImages';
+import { SITE_IMAGE_SLOTS, SLOT_GROUPS, SiteImageSlot, getSiteImageUrl } from '../config/siteImages';
 
 const MAX_UPLOAD_MB = 25; // foto de origen; la imagen final se reduce a unos cientos de KB
 const publicPathOf = (url: string) => {
@@ -114,7 +114,7 @@ const SlotEditor: React.FC<{ slot: SiteImageSlot; currentUrl: string; isCustom: 
   return (
     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
       <div>
-        <h2 className="text-xl font-black text-slate-900">{cfg.label}</h2>
+        <h3 className="text-lg font-black text-slate-900">{cfg.label}</h3>
         <p className="text-sm text-slate-500">{cfg.hint}</p>
       </div>
 
@@ -213,7 +213,7 @@ export const AdminFotos: React.FC = () => {
   const [password, setPassword] = useState('');
   const [loginErr, setLoginErr] = useState<string | null>(null);
   const [loggingIn, setLoggingIn] = useState(false);
-  const [overrides, setOverrides] = useState<Partial<Record<SiteImageSlot, string>>>({});
+  const [overrides, setOverrides] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!supabase) {
@@ -231,9 +231,9 @@ export const AdminFotos: React.FC = () => {
   const refresh = useCallback(async () => {
     if (!supabase) return;
     const { data } = await supabase.from(IMAGES_TABLE).select('slot,url');
-    const out: Partial<Record<SiteImageSlot, string>> = {};
+    const out: Record<string, string> = {};
     (data ?? []).forEach((r: { slot: string; url: string }) => {
-      out[r.slot as SiteImageSlot] = r.url;
+      out[r.slot] = r.url;
     });
     setOverrides(out);
   }, []);
@@ -327,14 +327,21 @@ export const AdminFotos: React.FC = () => {
       <p className="text-slate-600">
         Elige una foto de tu computadora o celular. Se recorta sola al formato correcto y se optimiza para que la página cargue rápido.
       </p>
-      {(Object.keys(SITE_IMAGE_SLOTS) as SiteImageSlot[]).map((slot) => (
-        <SlotEditor
-          key={slot}
-          slot={slot}
-          currentUrl={getSiteImageUrl(slot, overrides)}
-          isCustom={Boolean(overrides[slot])}
-          onChanged={refresh}
-        />
+      {SLOT_GROUPS.map((group) => (
+        <div key={group} className="space-y-4">
+          <h2 className="text-2xl font-black tracking-tight pt-4 border-t border-slate-200">{group}</h2>
+          {Object.keys(SITE_IMAGE_SLOTS)
+            .filter((slot) => SITE_IMAGE_SLOTS[slot].group === group)
+            .map((slot) => (
+              <SlotEditor
+                key={slot}
+                slot={slot}
+                currentUrl={getSiteImageUrl(slot, overrides)}
+                isCustom={Boolean(overrides[slot])}
+                onChanged={refresh}
+              />
+            ))}
+        </div>
       ))}
     </>
   );
