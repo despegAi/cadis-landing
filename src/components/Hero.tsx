@@ -2,7 +2,8 @@ import React from 'react';
 import { Calculator, Compass } from 'lucide-react';
 import { Property } from '../types';
 import { CadisLogo } from './CadisLogo';
-import { SITE_IMAGE_SLOTS, getSiteImageUrl } from '../config/siteImages';
+import { SITE_IMAGE_SLOTS } from '../config/siteImages';
+import { useSiteImage } from '../lib/useSiteImages';
 
 interface HeroProps {
   properties: Property[];
@@ -11,6 +12,7 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onGoToSimulator, onGoToProperties }) => {
+  const heroPhoto = useSiteImage('heroPhoto');
   return (
     <section id="inicio" className="relative scroll-mt-28 pt-8 pb-16 md:pt-10 md:pb-24 overflow-hidden bg-gradient-to-b from-slate-50 via-white to-slate-50">
       {/* Subtle architectural background grid */}
@@ -61,7 +63,7 @@ export const Hero: React.FC<HeroProps> = ({ onGoToSimulator, onGoToProperties })
           {/* Una sola foto principal (4:3). Editable desde el panel de administracion (ver config/siteImages.ts). */}
           <div className="lg:col-span-5">
             <img
-              src={getSiteImageUrl('heroPhoto')}
+              src={heroPhoto}
               alt={SITE_IMAGE_SLOTS.heroPhoto.alt}
               className="w-full aspect-[4/3] object-cover rounded-3xl shadow-xl border border-slate-100"
               referrerPolicy="no-referrer"
