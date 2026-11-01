@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { RioBonitoBadge } from './CadisLogo';
 import { RioBonitoVisualMap } from './RioBonitoVisualMap';
+import { SiteImage } from './SiteImage';
 import { Property, LotReservationRequest } from '../types';
 import { CADIS_WHATSAPP_NUMBER } from '../config/contact';
 
@@ -43,7 +44,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
       title: 'Playa Natural y Aguas Cristalinas',
       category: 'rio',
       tag: 'Balneario Privado',
-      url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+      slot: 'galeria1',
       description: 'Acceso directo a la orilla del Río Bonito con arena suave, ideal para nadar y acampar en familia.'
     },
     {
@@ -51,7 +52,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
       title: 'Topografía Plana y Suelo Fértil',
       category: 'terrenos',
       tag: '500m² a 1,500m²',
-      url: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80',
+      slot: 'galeria2',
       description: 'Lotes delimitados con estacas, listos para construir y sembrar árboles frutales o huerto propio.'
     },
     {
@@ -59,7 +60,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
       title: 'Estilo de Vida en Casa de Campo',
       category: 'casas',
       tag: 'Cabañas y Quincho',
-      url: 'https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=800&q=80',
+      slot: 'galeria3',
       description: 'Diseño campestre con galerías ventiladas, piscina y fogonero bajo el cielo estrellado de los valles.'
     },
     {
@@ -67,7 +68,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
       title: 'Atardeceres y Microclima de Valle',
       category: 'rio',
       tag: 'Brisa Fresca',
-      url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80',
+      slot: 'galeria4',
       description: 'Clima templado a 500 metros sobre el nivel del mar con temperatura promedio anual de 24°C.'
     },
     {
@@ -75,7 +76,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
       title: 'Vegetación y Sendero Ecológico',
       category: 'terrenos',
       tag: 'Arborización Nativa',
-      url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=800&q=80',
+      slot: 'galeria5',
       description: 'Rodeado de toborochis, tajibos y palmeras nativas con aire puro libre de contaminación.'
     },
     {
@@ -83,7 +84,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
       title: 'Espacios de Descanso Familiar',
       category: 'casas',
       tag: 'Convivencia',
-      url: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
+      slot: 'galeria6',
       description: 'Tu propio refugio de fin de semana para desconectar del estrés urbano a solo 45 min de Santa Cruz.'
     }
   ];
@@ -412,12 +413,11 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
                 className="group bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-xl hover:border-emerald-400 transition-all duration-300 flex flex-col"
               >
                 <div className="relative h-56 overflow-hidden bg-slate-100">
-                  <img
-                    src={item.url}
+                  <SiteImage
+                    slot={item.slot}
                     alt={item.title}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
                   

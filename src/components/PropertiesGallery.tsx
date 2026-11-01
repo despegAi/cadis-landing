@@ -25,6 +25,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { generatePropertyPdfBrochure } from '../utils/pdfBrochureGenerator';
+import { SiteImage } from './SiteImage';
 
 interface PropertiesGalleryProps {
   properties: Property[];
@@ -440,12 +441,12 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
               >
                 {/* Image & Badges */}
                 <div className="relative h-56 overflow-hidden">
-                  <img
-                    src={prop.imagen}
+                  <SiteImage
+                    slot={prop.id}
+                    fallback={prop.imagen}
                     alt={prop.titulo}
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    referrerPolicy="no-referrer"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-black/20" />
 
@@ -639,8 +640,9 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
             >
               {/* Header Image with Badges */}
               <div className="relative h-48 sm:h-56">
-                <img
-                  src={activeModalProperty.imagen}
+                <SiteImage
+                  slot={activeModalProperty.id}
+                  fallback={activeModalProperty.imagen}
                   alt={activeModalProperty.titulo}
                   loading="lazy"
                   className="w-full h-full object-cover"

@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Property, ChatInteractionLog } from '../types';
 import { CADIS_WHATSAPP_NUMBER, CADIS_WHATSAPP_DISPLAY } from '../config/contact';
+import { SiteImage } from './SiteImage';
 
 export type UserIntentType =
   | 'lot_inquiry'
@@ -459,9 +460,9 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
                 {/* Agent Avatar with Verified Badge */}
                 <div className="relative">
                   <div className="w-11 h-11 rounded-full bg-emerald-800 border-2 border-white flex items-center justify-center font-black text-sm text-white shadow-sm overflow-hidden">
-                    <img 
-                      src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&q=80" 
-                      alt="Asesora CADIS" 
+                    <SiteImage
+                      slot="asesoraFoto"
+                      alt="Asesora CADIS"
                       className="w-full h-full object-cover"
                     />
                   </div>
