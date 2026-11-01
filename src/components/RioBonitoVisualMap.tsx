@@ -96,6 +96,12 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
               </span>
             </div>
           ))}
+          <div className="flex items-center gap-1.5 border-l border-slate-700 pl-3">
+            <span className="w-3 h-3 rounded-full bg-slate-500 ring-1 ring-slate-300/40" />
+            <span className="text-slate-200 font-semibold">
+              Muy pronto <span className="text-slate-400 font-normal">(M3-M7)</span>
+            </span>
+          </div>
         </div>
       </div>
 
@@ -165,6 +171,9 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
             <text x={640} y={230} fontSize={44} fontWeight={900} fill="#fff" stroke="rgba(0,0,0,0.7)" strokeWidth={7} paintOrder="stroke" pointerEvents="none" opacity={0.9}>M2</text>
             <text x={250} y={780} fontSize={44} fontWeight={900} fill="#fff" stroke="rgba(0,0,0,0.7)" strokeWidth={7} paintOrder="stroke" pointerEvents="none" opacity={0.9}>M1</text>
           </svg>
+          <p className="absolute bottom-3 left-3 right-3 sm:right-auto sm:max-w-sm rounded-xl bg-slate-950/85 border border-slate-700 px-3 py-2 text-xs text-slate-200 backdrop-blur-sm">
+            <strong className="text-white">Manzanas M3 a M7 · Muy pronto.</strong> Las siguientes fases aún no están a la venta; consúltanos para enterarte cuando salgan.
+          </p>
         </div>
 
         {/* Panel del lote */}
