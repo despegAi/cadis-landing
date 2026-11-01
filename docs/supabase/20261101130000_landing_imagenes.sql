@@ -7,6 +7,8 @@ create table if not exists public.cadis_landing_admins (
   email text primary key
 );
 alter table public.cadis_landing_admins enable row level security;
+-- Nadie la lee por la API: solo la funcion cadis_es_admin_landing() (security definer).
+revoke all on table public.cadis_landing_admins from anon, authenticated;
 comment on table public.cadis_landing_admins is
   'Correos que pueden cambiar las fotos de la landing Cadis. Sin policies a proposito: solo la funcion cadis_es_admin_landing() la lee.';
 
