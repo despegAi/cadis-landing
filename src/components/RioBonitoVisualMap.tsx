@@ -27,6 +27,9 @@ const centroid = (pts: [number, number][]): [number, number] => {
 
 const lotLabel = (lot: LotInfo) => `${lot.manzana}-${String(lot.numero).padStart(2, '0')}`;
 
+// Los poligonos estan indexados sin cero a la izquierda ('M1-1'), el id del lote lo lleva ('M1-01').
+const polygonKey = (lot: LotInfo) => `${lot.manzana}-${lot.numero}`;
+
 export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveReservation }) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -108,12 +111,12 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
             <image href="/assets/mapa_rio_bonito_base.jpg" width={MAP_SIZE.width} height={MAP_SIZE.height} />
 
             {LOTS.map((lot) => {
-              const pts = LOT_POLYGONS[lot.id];
+              const pts = LOT_POLYGONS[polygonKey(lot)];
               if (!pts) return null;
               const st = STATUS_STYLE[lot.estado];
               const isSel = selectedId === lot.id;
               const isHover = hoveredId === lot.id;
-              const [cx, cy] = centers[lot.id];
+              const [cx, cy] = centers[polygonKey(lot)];
               return (
                 <g
                   key={lot.id}
@@ -201,14 +204,18 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
                   <dt className="text-slate-400">Superficie</dt>
                   <dd className="font-bold">{selected.superficieM2.toLocaleString('es-BO')} m²</dd>
                 </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Precio</dt>
-                  <dd className="font-black text-emerald-400">${LOT_PRICE_USD.toLocaleString()} USD</dd>
-                </div>
-                <div className="flex justify-between">
-                  <dt className="text-slate-400">Inicial (30%)</dt>
-                  <dd className="font-bold">${inicial.toLocaleString()} USD</dd>
-                </div>
+                {selected.estado === 'disponible' && (
+                  <>
+                    <div className="flex justify-between">
+                      <dt className="text-slate-400">Precio</dt>
+                      <dd className="font-black text-emerald-400">${LOT_PRICE_USD.toLocaleString()} USD</dd>
+                    </div>
+                    <div className="flex justify-between">
+                      <dt className="text-slate-400">Inicial (30%)</dt>
+                      <dd className="font-bold">${inicial.toLocaleString()} USD</dd>
+                    </div>
+                  </>
+                )}
               </dl>
 
               {selected.estado === 'disponible' ? (
