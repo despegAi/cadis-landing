@@ -3,7 +3,26 @@ import { Property, LotReservationRequest } from '../types';
 import { CADIS_WHATSAPP_NUMBER } from '../config/contact';
 import { LOT_POLYGONS, MAP_SIZE } from '../data/lotPolygons';
 import { LOTS, LOT_PRICE_USD, LotInfo, LotStatus } from '../data/lotStates';
-import { Layers, CalendarCheck, ShoppingBag, BookmarkPlus, X, MousePointerClick } from 'lucide-react';
+import { Layers, CalendarCheck, ShoppingBag, BookmarkPlus, X, MousePointerClick, ShieldCheck, MapPin, FileText } from 'lucide-react';
+
+type PanelTab = 'proyecto' | 'mini_quinta';
+
+// Datos del proyecto que antes estaban en la ficha del plano estático.
+// Matrícula y propietarios quedan fuera hasta confirmarlos con el folio real (DD.RR.).
+const DATOS_PROYECTO: { label: string; value: string }[] = [
+  { label: 'Ubicación', value: 'Limoncito (Com. Santo Rosario)' },
+  { label: 'Municipio', value: 'El Torno' },
+  { label: 'Provincia', value: 'Andrés Ibáñez, Santa Cruz' },
+  { label: 'Superficie del predio', value: '49,97 ha' },
+  { label: 'Fase 1', value: '27 mini quintas (M1 y M2)' },
+  { label: 'Precio', value: `Desde $${LOT_PRICE_USD.toLocaleString()} USD` },
+  { label: 'Financiamiento', value: 'Crédito directo · 30% inicial' }
+];
+
+const MANZANAS: { nombre: string; detalle: string }[] = [
+  { nombre: 'Manzana 1', detalle: '11 mini quintas · 9.144,56 m²' },
+  { nombre: 'Manzana 2', detalle: '16 mini quintas · 13.578,70 m²' }
+];
 
 interface RioBonitoVisualMapProps {
   properties: Property[];
@@ -33,6 +52,13 @@ const polygonKey = (lot: LotInfo) => `${lot.manzana}-${lot.numero}`;
 export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveReservation }) => {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [tab, setTab] = useState<PanelTab>('proyecto');
+
+  // Al tocar una mini quinta se abre su pestaña; al tocarla de nuevo se vuelve a los datos del proyecto.
+  const selectLot = (id: string | null) => {
+    setSelectedId(id);
+    setTab(id ? 'mini_quinta' : 'proyecto');
+  };
 
   const centers = useMemo(() => {
     const out: Record<string, [number, number]> = {};
@@ -61,13 +87,13 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
         : accion === 'comprar'
         ? 'quiero *comprar*'
         : 'quiero *agendar una visita* a';
-    const message = `Hola CADIS, vi el mapa interactivo de Río Bonito y ${verbo} el lote ${lotLabel(lot)} (${lot.superficieM2.toLocaleString('es-BO')} m², $${LOT_PRICE_USD.toLocaleString()} USD).`;
+    const message = `Hola CADIS, vi el mapa interactivo de Río Bonito y ${verbo} la mini quinta ${lotLabel(lot)} (${lot.superficieM2.toLocaleString('es-BO')} m², $${LOT_PRICE_USD.toLocaleString()} USD).`;
     onSaveReservation({ loteNumero: lotLabel(lot), accion, origen: 'mapa_interactivo' });
     window.open(`https://wa.me/${CADIS_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
-    <div className="bg-slate-900 text-white rounded-3xl p-5 sm:p-8 border border-slate-800 shadow-2xl space-y-5 relative overflow-hidden">
+    <div id="nosotros-legal" className="bg-slate-900 text-white rounded-3xl p-5 sm:p-8 border border-slate-800 shadow-2xl space-y-5 relative overflow-hidden scroll-mt-24">
       {/* Encabezado */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div>
@@ -75,13 +101,13 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
             <span className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
               <Layers className="w-4 h-4" />
             </span>
-            <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Mapa de lotes · Fase 1</span>
+            <span className="text-xs font-black uppercase tracking-wider text-emerald-400">Mapa de mini quintas · Fase 1</span>
           </div>
-          <h3 className="text-2xl sm:text-3xl font-black tracking-tight">Elige tu lote y resérvalo</h3>
+          <h3 className="text-2xl sm:text-3xl font-black tracking-tight">Elige tu mini quinta y resérvala</h3>
           <p className="text-sm text-slate-400 mt-1 max-w-2xl flex items-start gap-1.5">
             <MousePointerClick className="w-4 h-4 mt-0.5 shrink-0 text-emerald-400" />
             <span>
-              Toca un lote <strong className="text-emerald-400">verde</strong> para ver su precio y reservarlo por WhatsApp.
+              Toca una mini quinta <strong className="text-emerald-400">verde</strong> para ver su precio y reservarla.
             </span>
           </p>
         </div>
@@ -112,7 +138,7 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
             viewBox={`0 0 ${MAP_SIZE.width} ${MAP_SIZE.height}`}
             className="w-full h-auto block select-none"
             role="img"
-            aria-label="Mapa interactivo de los lotes del Proyecto Río Bonito"
+            aria-label="Mapa interactivo de las mini quintas del Proyecto Río Bonito"
           >
             <image href="/assets/mapa_rio_bonito_base.jpg" width={MAP_SIZE.width} height={MAP_SIZE.height} />
 
@@ -126,17 +152,17 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
               return (
                 <g
                   key={lot.id}
-                  className="cursor-pointer"
-                  onClick={() => setSelectedId(isSel ? null : lot.id)}
+                  className="cursor-pointer outline-none focus-visible:[&_polygon]:stroke-white"
+                  onClick={() => selectLot(isSel ? null : lot.id)}
                   onMouseEnter={() => setHoveredId(lot.id)}
                   onMouseLeave={() => setHoveredId(null)}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Lote ${lotLabel(lot)}, ${st.label}`}
+                  aria-label={`Mini quinta ${lotLabel(lot)}, ${st.label}`}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      setSelectedId(isSel ? null : lot.id);
+                      selectLot(isSel ? null : lot.id);
                     }
                   }}
                 >
@@ -176,13 +202,78 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
           </p>
         </div>
 
-        {/* Panel del lote */}
-        <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-5 flex flex-col">
-          {selected ? (
-            <div className="space-y-4">
+        {/* Panel con pestañas: datos del proyecto / mini quinta elegida */}
+        <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-5 flex flex-col gap-4">
+          <div role="tablist" aria-label="Información del mapa" className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-slate-900 border border-slate-800">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'proyecto'}
+              onClick={() => setTab('proyecto')}
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-black cursor-pointer transition-colors ${
+                tab === 'proyecto' ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Datos del proyecto</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === 'mini_quinta'}
+              onClick={() => setTab('mini_quinta')}
+              className={`flex items-center justify-center gap-1.5 px-2 py-2 rounded-lg text-xs font-black cursor-pointer transition-colors ${
+                tab === 'mini_quinta' ? 'bg-emerald-600 text-white' : 'text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <MapPin className="w-3.5 h-3.5" />
+              <span>{selected ? `Mini quinta ${lotLabel(selected)}` : 'Mini quinta'}</span>
+            </button>
+          </div>
+
+          {tab === 'proyecto' ? (
+            <div role="tabpanel" className="space-y-4 text-sm">
+              <div className="space-y-2">
+                <h4 className="text-xs font-extrabold text-emerald-400 uppercase tracking-wider flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4" />
+                  Proyecto Río Bonito
+                </h4>
+                <dl className="space-y-1.5">
+                  {DATOS_PROYECTO.map((d) => (
+                    <div key={d.label} className="flex justify-between gap-3 border-b border-slate-800 pb-1.5">
+                      <dt className="text-slate-400">{d.label}</dt>
+                      <dd className="font-bold text-right">{d.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                {MANZANAS.map((m) => (
+                  <div key={m.nombre} className="bg-slate-900 p-2.5 rounded-lg border border-slate-800">
+                    <span className="text-slate-400 block">{m.nombre}</span>
+                    <strong className="text-white">{m.detalle}</strong>
+                  </div>
+                ))}
+              </div>
+              <a
+                href="/assets/artevld.jpg"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs font-bold transition-colors"
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Ver plano oficial del proyecto</span>
+              </a>
+              <p className="text-xs text-slate-400 flex items-start gap-1.5">
+                <MousePointerClick className="w-4 h-4 shrink-0 text-emerald-400" />
+                <span>Toca una mini quinta verde en el mapa para ver sus datos y reservarla.</span>
+              </p>
+            </div>
+          ) : selected ? (
+            <div role="tabpanel" className="space-y-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Lote</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-bold">Mini quinta</p>
                   <p className="text-3xl font-black font-mono">{lotLabel(selected)}</p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -199,7 +290,7 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
                   </span>
                   <button
                     type="button"
-                    onClick={() => setSelectedId(null)}
+                    onClick={() => selectLot(null)}
                     aria-label="Cerrar"
                     className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
                   >
@@ -235,7 +326,7 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
                     className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-black cursor-pointer transition-colors"
                   >
                     <BookmarkPlus className="w-4 h-4" />
-                    <span>Reservar este lote</span>
+                    <span>Reservar esta mini quinta</span>
                   </button>
                   <div className="grid grid-cols-2 gap-2">
                     <button
@@ -259,7 +350,7 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
               ) : (
                 <div className="space-y-2 pt-1">
                   <p className="text-sm text-slate-400">
-                    Este lote está {selected.estado}. Mira los lotes verdes del mapa o consulta por otras opciones.
+                    Esta mini quinta está {selected.estado}. Mira las mini quintas verdes del mapa o consulta por otras opciones.
                   </p>
                   <button
                     type="button"
@@ -273,11 +364,11 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
               )}
             </div>
           ) : (
-            <div className="m-auto text-center space-y-2 py-8">
+            <div role="tabpanel" className="m-auto text-center space-y-2 py-8">
               <MousePointerClick className="w-8 h-8 mx-auto text-emerald-400" />
-              <p className="font-bold">Toca un lote en el mapa</p>
+              <p className="font-bold">Toca una mini quinta en el mapa</p>
               <p className="text-sm text-slate-400">
-                Verás su superficie, precio ${LOT_PRICE_USD.toLocaleString()} USD y podrás reservarlo.
+                Verás su superficie, precio ${LOT_PRICE_USD.toLocaleString()} USD y podrás reservarla.
               </p>
             </div>
           )}
