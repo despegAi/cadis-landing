@@ -2,7 +2,8 @@ import React, { useMemo, useState } from 'react';
 import { Property, LotReservationRequest } from '../types';
 import { CADIS_WHATSAPP_NUMBER } from '../config/contact';
 import { LOT_POLYGONS, MAP_SIZE } from '../data/lotPolygons';
-import { LOTS, LOT_PRICE_USD, LotInfo, LotStatus } from '../data/lotStates';
+import { LOT_PRICE_USD, LotInfo, LotStatus } from '../data/lotStates';
+import { useLotStates } from '../lib/useLotStates';
 import { Layers, CalendarCheck, ShoppingBag, BookmarkPlus, X, MousePointerClick, ShieldCheck, MapPin, FileText } from 'lucide-react';
 
 type PanelTab = 'proyecto' | 'mini_quinta';
@@ -53,6 +54,7 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [tab, setTab] = useState<PanelTab>('proyecto');
+  const { lots: LOTS } = useLotStates();
 
   // Al tocar una mini quinta se abre su pestaña; al tocarla de nuevo se vuelve a los datos del proyecto.
   const selectLot = (id: string | null) => {
@@ -74,7 +76,7 @@ export const RioBonitoVisualMap: React.FC<RioBonitoVisualMapProps> = ({ onSaveRe
       reservado: LOTS.filter((l) => l.estado === 'reservado').length,
       vendido: LOTS.filter((l) => l.estado === 'vendido').length
     }),
-    []
+    [LOTS]
   );
 
   const selected = LOTS.find((l) => l.id === selectedId) || null;
