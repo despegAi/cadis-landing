@@ -20,6 +20,10 @@ import {
 import { RioBonitoBadge } from './CadisLogo';
 import { RioBonitoVisualMap } from './RioBonitoVisualMap';
 import { SiteImage } from './SiteImage';
+import fotoPlusTerreno from '../assets/fotos/rio_bonito_plusvalia_terreno.webp';
+import fotoPlusRio from '../assets/fotos/rio_bonito_plusvalia_rio.webp';
+import fotoPlusBosque from '../assets/fotos/rio_bonito_plusvalia_bosque.webp';
+import fotoPlusCasa from '../assets/fotos/rio_bonito_plusvalia_casa.webp';
 import { Property, LotReservationRequest } from '../types';
 import { CADIS_WHATSAPP_NUMBER } from '../config/contact';
 
@@ -178,104 +182,6 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
           </div>
         </div>
 
-        {/* 2. ÁREA NOSOTROS & FICHA CATASTRAL OFICIAL (artevld.jpg) */}
-        <div id="nosotros-legal" className="pt-8 border-t border-slate-200 space-y-8">
-          <div className="text-center max-w-3xl mx-auto space-y-2">
-            <span className="text-xs font-black uppercase tracking-widest text-[#009698] bg-teal-50 px-3 py-1 rounded-full border border-teal-200">
-              Área 2 • Nosotros & Respaldo Legal
-            </span>
-            <h3 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-              Plano de Mensura y Ficha Catastral Oficial Río Bonito
-            </h3>
-            <p className="text-slate-600 text-sm">
-              Documentación técnica y delimitación catastral verificada en la zona de Limoncito (Municipio El Torno), al margen del Río Piraí.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center bg-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl">
-            {/* Blueprint Blueprint Photo Display */}
-            <div className="lg:col-span-7 space-y-3">
-              <div className="relative rounded-2xl overflow-hidden border-2 border-teal-500/40 shadow-2xl bg-slate-950">
-                <img
-                  src="/assets/artevld.jpg"
-                  alt="Plano de Mensura y Croquis de Ubicación Mini Quintas Río Bonito"
-                  loading="lazy"
-                  className="w-full h-auto object-contain max-h-[500px] hover:scale-102 transition-transform duration-300"
-                />
-                <div className="absolute bottom-3 right-3 px-3 py-1 bg-slate-900/90 text-[#009698] text-xs font-black rounded-lg border border-teal-500/30">
-                  Documento Oficial CADIS
-                </div>
-              </div>
-            </div>
-
-            {/* Official Legal & Catastral Specifications */}
-            <div className="lg:col-span-5 space-y-4 text-xs">
-              <div className="p-4 rounded-2xl bg-slate-800/90 border border-slate-700 space-y-3">
-                <h4 className="text-sm font-extrabold text-[#009698] uppercase tracking-wider flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4" />
-                  DATOS CATASTRALES Y REGISTRO
-                </h4>
-                
-                <div className="space-y-2 text-slate-300">
-                  <div className="flex justify-between border-b border-slate-700 pb-1">
-                    <span className="text-slate-400">Departamento:</span>
-                    <strong className="text-white">Santa Cruz</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-700 pb-1">
-                    <span className="text-slate-400">Provincia:</span>
-                    <strong className="text-white">Andrés Ibáñez</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-700 pb-1">
-                    <span className="text-slate-400">Municipio:</span>
-                    <strong className="text-white">El Torno</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-700 pb-1">
-                    <span className="text-slate-400">Ubicación:</span>
-                    <strong className="text-white">Limoncito (Com. Santo Rosario)</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-700 pb-1">
-                    <span className="text-slate-400">N° de Registro:</span>
-                    <strong className="text-teal-400 font-mono">705 - 105 - 999 - 0001</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-700 pb-1">
-                    <span className="text-slate-400">Código Catastral:</span>
-                    <strong className="text-teal-400 font-mono">705 - 105 - 999 - 0001</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-700 pb-1">
-                    <span className="text-slate-400">Matrícula DDRR:</span>
-                    <strong className="text-emerald-400 font-mono">N° 7.0.1.5.01.00022228</strong>
-                  </div>
-                  <div className="flex justify-between border-b border-slate-700 pb-1">
-                    <span className="text-slate-400">Fecha Inscripción:</span>
-                    <strong className="text-white">17/09/2007</strong>
-                  </div>
-                  <div className="pt-1">
-                    <span className="text-slate-400 block mb-1">Propietarios Titulares:</span>
-                    <p className="text-white font-bold bg-slate-900 p-2 rounded border border-slate-700">
-                      ROLLER TOLEDO SAAVEDRA Y CARLOS IVER ANDIA CUÉLLAR
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Manzanas & Loteamiento Breakdown */}
-              <div className="p-4 rounded-2xl bg-teal-950/40 border border-teal-500/30 space-y-2">
-                <h5 className="font-extrabold text-teal-300 text-xs uppercase">Resumen de Manzanos Aprobados:</h5>
-                <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <div className="bg-slate-900 p-2 rounded border border-slate-700">
-                    <span className="text-slate-400 block">MANZANA N° 1</span>
-                    <strong className="text-white">11 Lotes (9.144,56 m²)</strong>
-                  </div>
-                  <div className="bg-slate-900 p-2 rounded border border-slate-700">
-                    <span className="text-slate-400 block">MANZANA N° 2</span>
-                    <strong className="text-white">16 Lotes (13.578,70 m²)</strong>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Static Visual Map Component with SVG Markers */}
         <RioBonitoVisualMap
           properties={properties}
@@ -317,7 +223,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
                   className="px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm inline-flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
                 >
                   <Calculator className="w-4 h-4" />
-                  <span>Simular Financiamiento de Lote</span>
+                  <span>Simular financiamiento de tu mini quinta</span>
                 </button>
               </div>
             </div>
@@ -326,8 +232,8 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl overflow-hidden h-44 sm:h-52">
                   <img
-                    src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=600&q=80"
-                    alt="Terreno verde en Limoncito"
+                    src={fotoPlusTerreno}
+                    alt="Camino entre potreros en Limoncito"
                     loading="lazy"
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
@@ -335,8 +241,8 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
                 </div>
                 <div className="rounded-xl overflow-hidden h-44 sm:h-52">
                   <img
-                    src="https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=600&q=80"
-                    alt="Río y naturaleza"
+                    src={fotoPlusRio}
+                    alt="Sendero bajo el monte en Río Bonito"
                     loading="lazy"
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
@@ -344,8 +250,8 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
                 </div>
                 <div className="rounded-xl overflow-hidden h-44 sm:h-52">
                   <img
-                    src="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=600&q=80"
-                    alt="Bosque nativo"
+                    src={fotoPlusBosque}
+                    alt="Árbol nativo frondoso"
                     loading="lazy"
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"
@@ -353,8 +259,8 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
                 </div>
                 <div className="rounded-xl overflow-hidden h-44 sm:h-52">
                   <img
-                    src="https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=600&q=80"
-                    alt="Casa de campo"
+                    src={fotoPlusCasa}
+                    alt="Ternero junto a una casa de campo"
                     loading="lazy"
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
                     referrerPolicy="no-referrer"

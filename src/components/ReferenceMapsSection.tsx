@@ -11,6 +11,10 @@ import {
   PhoneCall
 } from 'lucide-react';
 import { CADIS_WHATSAPP_NUMBER } from '../config/contact';
+import fotoMapaRutas from '../assets/fotos/rio_bonito_llegar_mapa_rutas.webp';
+import fotoValleRio from '../assets/fotos/rio_bonito_llegar_valle_rio.webp';
+import fotoLotes from '../assets/fotos/rio_bonito_llegar_lotes.webp';
+import fotoMicroclima from '../assets/fotos/rio_bonito_llegar_microclima.webp';
 
 // ============================================================================
 // CONFIGURACIÓN DE MAPAS DE REFERENCIA (FÁCILMENTE REEMPLAZABLES POR REALES)
@@ -213,8 +217,8 @@ export const ReferenceMapsSection: React.FC = () => {
               <div className="bg-slate-950 rounded-3xl p-6 border border-slate-800 space-y-4 shadow-xl">
                 <div className="relative h-60 rounded-2xl overflow-hidden border border-slate-700/80 group">
                   <img
-                    src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=800&q=80"
-                    alt="Mapa de referencia de rutas"
+                    src={fotoMapaRutas}
+                    alt="Ruta desde Santa Cruz hasta Río Bonito (Google Earth)"
                     loading="lazy"
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80"
                   />
@@ -331,8 +335,8 @@ export const ReferenceMapsSection: React.FC = () => {
               {/* Photo 1 */}
               <div className="group relative rounded-2xl overflow-hidden h-72 border border-slate-800">
                 <img
-                  src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=800&q=80"
-                  alt="Vista aérea del valle y río"
+                  src={fotoValleRio}
+                  alt="Vista aérea del valle y el río Piraí (Google Earth)"
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -349,7 +353,7 @@ export const ReferenceMapsSection: React.FC = () => {
               {/* Photo 2 */}
               <div className="group relative rounded-2xl overflow-hidden h-72 border border-slate-800">
                 <img
-                  src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=800&q=80"
+                  src={fotoLotes}
                   alt="Lotes planos con vegetación"
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -367,7 +371,7 @@ export const ReferenceMapsSection: React.FC = () => {
               {/* Photo 3 */}
               <div className="group relative rounded-2xl overflow-hidden h-72 border border-slate-800">
                 <img
-                  src="https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=800&q=80"
+                  src={fotoMicroclima}
                   alt="Microclima y reserva ecológica"
                   loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
