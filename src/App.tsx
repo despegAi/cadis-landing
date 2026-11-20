@@ -51,7 +51,7 @@ export default function App() {
 
   // Selected Lot for direct simulation preload
   const [selectedLotPrice, setSelectedLotPrice] = useState<number>(9000);
-  const [selectedLotNumber, setSelectedLotNumber] = useState<string>('Lote RB-01');
+  const [selectedLotNumber, setSelectedLotNumber] = useState<string>('');
 
   // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -94,7 +94,7 @@ export default function App() {
   const handleSelectPropertyForSimulation = (prop: Property) => {
     setSelectedLotPrice(prop.precio);
     setSelectedLotNumber(prop.loteNumero);
-    showToast(`Lote ${prop.loteNumero} cargado en el simulador ($${prop.precio.toLocaleString()} USD)`);
+    showToast(`Mini quinta ${prop.loteNumero.replace(/^\s*lote\s*/i, '')} cargada en el simulador ($${prop.precio.toLocaleString()} USD)`);
     scrollToSection('simulador');
   };
 

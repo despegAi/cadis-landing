@@ -21,6 +21,12 @@ import { Property, ChatInteractionLog } from '../types';
 import { CADIS_WHATSAPP_NUMBER, CADIS_WHATSAPP_DISPLAY } from '../config/contact';
 import { SiteImage } from './SiteImage';
 
+// Texto público: siempre "mini quinta", nunca "lote".
+const nombreMiniQuinta = (raw?: string) => {
+  const code = (raw || '').replace(/^\s*lote\s*/i, '').trim();
+  return code ? `mini quinta ${code}` : 'mini quinta';
+};
+
 export type UserIntentType =
   | 'lot_inquiry'
   | 'credit_simulation'
@@ -106,7 +112,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
 
   // Predefined Automated Welcome Messages by Intent
   const getPredefinedWelcomeMessage = (intent: UserIntentType): string => {
-    const lotName = selectedProperty?.loteNumero || selectedLotNumber || 'Lote RB-01';
+    const lotName = nombreMiniQuinta(selectedProperty?.loteNumero || selectedLotNumber);
     const price = selectedProperty?.precio || selectedLotPrice || 9000;
     const initialDeposit = (price * 0.3).toLocaleString();
     const deferredMonthly = (price * 0.3 / 3).toFixed(0);
@@ -114,12 +120,12 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
     switch (intent) {
       case 'lot_inquiry':
         if (selectedProperty?.estado === 'reservado') {
-          return `¡Hola! 👋 Detectamos tu interés en el **${lotName}** ($${price.toLocaleString()} USD). Actualmente tiene una reserva activa, pero podemos registrarte con prioridad en la lista de espera o mostrarte terrenos colindantes similares. ¿Deseas recibir la lista?`;
+          return `¡Hola! 👋 Detectamos tu interés en la **${lotName}** ($${price.toLocaleString()} USD). Actualmente tiene una reserva activa, pero podemos registrarte con prioridad en la lista de espera o mostrarte terrenos colindantes similares. ¿Deseas recibir la lista?`;
         }
         if (selectedProperty?.estado === 'vendido') {
-          return `¡Hola! 👋 El **${lotName}** ya fue titulado y vendido, pero contamos con lotes vecinos de dimensiones idénticas en Río Bonito listos para entrega. ¿Te gustaría consultar las opciones disponibles?`;
+          return `¡Hola! 👋 La **${lotName}** ya fue vendida, pero contamos con mini quintas vecinas de dimensiones idénticas en Río Bonito listos para entrega. ¿Te gustaría consultar las opciones disponibles?`;
         }
-        return `¡Hola! 👋 Veo que estás consultando sobre el **${lotName}** ($${price.toLocaleString()} USD en Proyecto Río Bonito). Te tengo listos los planos, medidas (${selectedProperty?.metraje || 500} m²) y el plan de cuota inicial en 3 meses ($${deferredMonthly} USD/mes). ¿Te gustaría agendar una visita o recibir la información oficial?`;
+        return `¡Hola! 👋 Veo que estás consultando sobre la **${lotName}** ($${price.toLocaleString()} USD en Proyecto Río Bonito). Te tengo listos los planos, medidas (${selectedProperty?.metraje || 500} m²) y el plan de cuota inicial en 3 meses ($${deferredMonthly} USD/mes). ¿Te gustaría agendar una visita o recibir la información oficial?`;
 
       case 'credit_simulation':
         return `¡Hola! 💰 Has ingresado al canal de **Crédito Directo CADIS**. Te financiamos tu terreno campestre en Limoncito sin banco, sin garantes y con entrega inmediata pagando solo el 30% inicial en 3 cuotas. ¿Qué plazo de financiamiento (2 o 3 años) se acomoda a ti?`;
@@ -128,7 +134,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
         return `¡Hola! 🚐 Organizamos **visitas guiadas gratuitas todos los Sábados y Domingos** rumbo a Limoncito (Proyecto Río Bonito). Contamos con transporte ida y vuelta y refrigerio para ti y tu familia. ¿Para qué día te gustaría asegurar cupos?`;
 
       case 'vendor_agent':
-        return `¡Hola! 💼 Te damos la bienvenida al canal de **Asesores y Vendedores Independientes de CADIS**. Ofrecemos altas comisiones (hasta 8% por lote), material publicitario y capacitaciones continuas. ¿En qué ciudad resides para enviarte el kit comercial?`;
+        return `¡Hola! 💼 Te damos la bienvenida al canal de **Asesores y Vendedores Independientes de CADIS**. Ofrecemos altas comisiones (hasta 8% por mini quinta), material publicitario y capacitaciones continuas. ¿En qué ciudad resides para enviarte el kit comercial?`;
 
       case 'general_inquiry':
       default:
@@ -138,7 +144,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
 
   // Predefined Quick Response Prompts by Intent
   const currentQuickOptions = useMemo<QuickOption[]>(() => {
-    const lotName = selectedProperty?.loteNumero || selectedLotNumber || 'Lote RB-01';
+    const lotName = nombreMiniQuinta(selectedProperty?.loteNumero || selectedLotNumber);
     const price = selectedProperty?.precio || selectedLotPrice || 9000;
     const initial3m = (price * 0.3 / 3).toFixed(0);
 
@@ -148,22 +154,22 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
           {
             id: 'lot-1',
             title: `Plan de pago inicial 3 meses ($${initial3m} USD/m)`,
-            text: `¡Hola CADIS! Deseo información para pagar la cuota inicial diferida en 3 meses para el ${lotName} ($${price.toLocaleString()} USD).`
+            text: `¡Hola CADIS! Deseo información para pagar la cuota inicial diferida en 3 meses para la ${lotName} ($${price.toLocaleString()} USD).`
           },
           {
             id: 'lot-2',
             title: `Agendar visita presencial para ${lotName}`,
-            text: `Hola, deseo agendar una visita guiada para ir a ver presencialmente el ${lotName} en Limoncito con mi familia este fin de semana.`
+            text: `Hola, deseo agendar una visita guiada para ir a ver presencialmente la ${lotName} en Limoncito con mi familia este fin de semana.`
           },
           {
             id: 'lot-3',
             title: `Consultar cuota mensual a 3 años`,
-            text: `Buenas tardes, quisiera saber cuál sería la cuota mensual a 3 años financiada para el saldo del ${lotName}.`
+            text: `Buenas tardes, quisiera saber cuál sería la cuota mensual a 3 años financiada para el saldo de la ${lotName}.`
           },
           {
             id: 'lot-4',
             title: `Ubicación GPS exacta y plano`,
-            text: `Hola, me gustaría recibir la ubicación en Google Maps y el plano de delimitación del ${lotName}.`
+            text: `Hola, me gustaría recibir la ubicación en Google Maps y el plano de delimitación de la ${lotName}.`
           }
         ];
 
@@ -754,7 +760,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
         </div>
         <div className="hidden sm:block text-left pr-1">
           <p className="text-[10px] font-extrabold uppercase tracking-wider text-emerald-950 leading-none">
-            {selectedLotNumber ? `Lote: ${selectedLotNumber}` : '¿Consultas?'}
+            {selectedLotNumber ? `Mini quinta: ${selectedLotNumber.replace(/^\s*lote\s*/i, '')}` : '¿Consultas?'}
           </p>
           <p className="text-sm font-black text-white leading-tight">
             Chat WhatsApp

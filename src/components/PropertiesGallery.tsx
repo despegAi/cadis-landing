@@ -687,7 +687,7 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                   <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 space-y-1">
                     <p className="font-extrabold flex items-center gap-1.5 text-amber-800">
                       <Clock className="w-4 h-4 text-amber-600 shrink-0" />
-                      <span>Lote con Reserva Activa</span>
+                      <span>Mini quinta reservada</span>
                     </p>
                     <p className="text-[11px] leading-relaxed text-amber-900/90">
                       Este lote se encuentra actualmente reservado por un comprador. Puedes ingresar a la lista de espera preferencial por WhatsApp para recibir notificación prioritaria si el lote vuelve a estar disponible, o conocer opciones similares contiguas.
@@ -699,7 +699,7 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                   <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-700 space-y-1">
                     <p className="font-extrabold flex items-center gap-1.5 text-slate-800">
                       <CheckCircle2 className="w-4 h-4 text-slate-600 shrink-0" />
-                      <span>Lote Vendido y Titulado</span>
+                      <span>Mini quinta vendida</span>
                     </p>
                     <p className="text-[11px] leading-relaxed text-slate-600">
                       Esta mini quinta ya ha sido adquirida. Contamos con lotes colindantes de metraje y topografía similar listos para entrega inmediata con crédito directo CADIS.

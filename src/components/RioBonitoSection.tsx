@@ -223,7 +223,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
                   className="px-6 py-3.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm inline-flex items-center gap-2 shadow-lg shadow-emerald-500/20 cursor-pointer"
                 >
                   <Calculator className="w-4 h-4" />
-                  <span>Simular Financiamiento de Lote</span>
+                  <span>Simular financiamiento de tu mini quinta</span>
                 </button>
               </div>
             </div>
