@@ -32,6 +32,16 @@ interface PropertiesGalleryProps {
   onSelectPropertyForSimulation: (property: Property) => void;
 }
 
+
+// Cuota mensual del crédito directo CADIS: 30 % inicial, saldo (70 %) a 10 % anual (sistema francés).
+const cuotaCreditoDirecto = (precio: number, anios: number): number => {
+  const saldo = precio - Math.round(precio * 0.3);
+  const r = 0.1 / 12;
+  const n = anios * 12;
+  const f = Math.pow(1 + r, n);
+  return (saldo * r * f) / (f - 1);
+};
+
 export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
   properties,
   onSelectPropertyForSimulation
@@ -429,8 +439,9 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {filteredProperties.map((prop) => {
             const cuotaInicial = prop.precio * 0.30;
-            const cuotaMensual10Anios = (prop.precio * 0.70) / 120;
-            const cuotaMensual5Anios = (prop.precio * 0.70) / 60;
+            // Mismo cálculo que el simulador: saldo del 70 % a 10 % anual, planes de 2 y 3 años.
+            const cuotaMensual2Anios = cuotaCreditoDirecto(prop.precio, 2);
+            const cuotaMensual3Anios = cuotaCreditoDirecto(prop.precio, 3);
             const isAvailable = prop.estado === 'disponible';
 
             return (
@@ -530,15 +541,15 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                     {/* Monthly quota indicator */}
                     <div className="p-3 rounded-xl bg-emerald-50/80 border border-emerald-200/70 flex items-center justify-between">
                       <div>
-                        <span className="text-[11px] font-bold text-emerald-900">Cuota Directa a 5 Años:</span>
+                        <span className="text-[11px] font-bold text-emerald-900">Crédito directo a 3 años:</span>
                         <p className="text-base font-black text-emerald-700">
-                          ${cuotaMensual5Anios.toFixed(2)} <span className="text-xs font-semibold text-slate-600">USD/mes</span>
+                          ${cuotaMensual3Anios.toFixed(2)} <span className="text-xs font-semibold text-slate-600">USD/mes</span>
                         </p>
                       </div>
                       <div className="text-right">
-                        <span className="text-[11px] font-bold text-slate-600">A 10 Años:</span>
+                        <span className="text-[11px] font-bold text-slate-600">A 2 años:</span>
                         <p className="text-sm font-bold text-slate-800">
-                          ${cuotaMensual10Anios.toFixed(2)} USD/mes
+                          ${cuotaMensual2Anios.toFixed(2)} USD/mes
                         </p>
                       </div>
                     </div>
