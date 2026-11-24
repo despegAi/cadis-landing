@@ -1,1 +1,48 @@
 @import "tailwindcss";
+
+/* ---------- Celular y pantallas táctiles (2026-11-23) ---------- */
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Los anclajes del menú no quedan tapados por la barra fija */
+  scroll-padding-top: 5.5rem;
+  scroll-behavior: smooth;
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+body {
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: clip;
+}
+::selection {
+  background: rgb(16 185 129 / 0.25);
+  color: inherit;
+}
+
+/* Botones y chips táctiles: 44 px mínimo cuando el puntero es un dedo */
+@media (pointer: coarse), (max-width: 639px) {
+  .tap {
+    min-height: 44px;
+  }
+}
+
+/* Listas de enlaces del pie: filas cómodas para el dedo en el celular */
+@media (max-width: 639px) {
+  footer li > a,
+  footer li > button {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+  }
+}
+
+/* En pantallas angostas ningún texto baja de 12 px (había 290 usos de 9 a 11 px) */
+@media (max-width: 639px) {
+  .text-\[9px\],
+  .text-\[10px\],
+  .text-\[11px\] {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
