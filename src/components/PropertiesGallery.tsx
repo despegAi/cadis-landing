@@ -192,7 +192,7 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                     key={code}
                     type="button"
                     onClick={() => setSearchQuery(isActive ? '' : code)}
-                    className={`px-2 py-1 rounded-md text-[11px] font-mono font-bold transition-all cursor-pointer ${
+                    className={`tap min-w-11 px-2 py-1 rounded-md text-[11px] font-mono font-bold transition-all cursor-pointer ${
                       isActive
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-900'
@@ -206,7 +206,7 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                 <button
                   type="button"
                   onClick={() => setSearchQuery('')}
-                  className="text-[11px] font-bold text-emerald-700 hover:underline ml-1 cursor-pointer"
+                  className="tap px-2 text-[11px] font-bold text-emerald-700 hover:underline ml-1 cursor-pointer"
                 >
                   Limpiar filtro
                 </button>
@@ -229,7 +229,7 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                 <div className="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl">
                   <button
                     onClick={() => setFilterAvailability('all')}
-                    className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    className={`tap py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       filterAvailability === 'all'
                         ? 'bg-white text-slate-900 shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -239,7 +239,7 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                   </button>
                   <button
                     onClick={() => setFilterAvailability('disponible')}
-                    className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    className={`tap py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       filterAvailability === 'disponible'
                         ? 'bg-emerald-600 text-white shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -249,7 +249,7 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                   </button>
                   <button
                     onClick={() => setFilterAvailability('reservado')}
-                    className={`py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                    className={`tap py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                       filterAvailability === 'reservado'
                         ? 'bg-amber-500 text-white shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
@@ -275,7 +275,7 @@ export const PropertiesGallery: React.FC<PropertiesGalleryProps> = ({
                     <button
                       key={m}
                       onClick={() => setFilterMinMetraje(m)}
-                      className={`flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
+                      className={`tap flex-1 py-1.5 text-xs font-bold rounded-lg border transition-all cursor-pointer ${
                         filterMinMetraje === m
                           ? 'bg-slate-900 text-white border-slate-900'
                           : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'

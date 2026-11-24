@@ -112,39 +112,39 @@ export const ReferenceMapsSection: React.FC = () => {
           </div>
 
           {/* Tab Switcher: Route vs Satellite vs Google Maps Embed */}
-          <div className="flex items-center gap-1.5 p-1.5 bg-slate-950 rounded-2xl border border-slate-800 shrink-0">
+          <div className="grid grid-cols-3 sm:flex items-stretch sm:items-center gap-1.5 p-1.5 bg-slate-950 rounded-2xl border border-slate-800 shrink-0">
             <button
               onClick={() => setActiveTab('route')}
-              className={`px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer ${
+              className={`tap px-2 sm:px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-center leading-tight transition-all cursor-pointer ${
                 activeTab === 'route'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-slate-900'
               }`}
             >
               <Car className="w-4 h-4" />
-              <span>Ruta Santa Cruz</span>
+              <span>Ruta<span className="hidden sm:inline"> Santa Cruz</span></span>
             </button>
             <button
               onClick={() => setActiveTab('satellite')}
-              className={`px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer ${
+              className={`tap px-2 sm:px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-center leading-tight transition-all cursor-pointer ${
                 activeTab === 'satellite'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-slate-900'
               }`}
             >
               <Layers className="w-4 h-4" />
-              <span>Vista Satelital Ref.</span>
+              <span>Satelital<span className="hidden sm:inline"> Ref.</span></span>
             </button>
             <button
               onClick={() => setActiveTab('embed')}
-              className={`px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center gap-2 transition-all cursor-pointer ${
+              className={`tap px-2 sm:px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-center leading-tight transition-all cursor-pointer ${
                 activeTab === 'embed'
                   ? 'bg-emerald-600 text-white shadow-md'
                   : 'text-slate-400 hover:text-white hover:bg-slate-900'
               }`}
             >
               <MapPin className="w-4 h-4" />
-              <span>Google Maps Interactivo</span>
+              <span>Google Maps<span className="hidden sm:inline"> Interactivo</span></span>
             </button>
           </div>
         </div>

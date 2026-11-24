@@ -299,7 +299,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
                 <button
                   key={tab.id}
                   onClick={() => setSelectedCategory(tab.id as any)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  className={`tap px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     selectedCategory === tab.id
                       ? 'bg-white text-slate-900 shadow-xs'
                       : 'text-slate-600 hover:text-slate-900'
@@ -348,7 +348,7 @@ export const RioBonitoSection: React.FC<RioBonitoSectionProps> = ({
                       href={`https://wa.me/${CADIS_WHATSAPP_NUMBER}?text=${encodeURIComponent(`Hola CADIS, me gustó la foto de referencia "${item.title}". ¿Tienen fotos y videos reales y actuales del lote?`)}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs font-extrabold text-[#25D366] hover:underline flex items-center gap-1 cursor-pointer"
+                      className="tap -my-2 py-2 text-xs font-extrabold text-[#25D366] hover:underline flex items-center gap-1 cursor-pointer"
                     >
                       <MessageCircle className="w-3.5 h-3.5 fill-[#25D366]" />
                       <span>Pedir más fotos</span>
