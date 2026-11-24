@@ -34,7 +34,9 @@ export const clearSiteImagesCache = () => {
  * o la foto por defecto del espacio.
  */
 export const useSiteImage = (slot: SiteImageSlot, fallback?: string): string => {
-  const base = fallback || getSiteImageUrl(slot);
+  // La foto real del espacio manda; `fallback` solo cubre espacios sin foto propia
+  // (antes ganaba la URL de Unsplash que traen los datos de ejemplo de cada mini quinta).
+  const base = getSiteImageUrl(slot) || fallback || '';
   const [override, setOverride] = useState<string | undefined>(cache?.[slot]);
   useEffect(() => {
     let alive = true;
