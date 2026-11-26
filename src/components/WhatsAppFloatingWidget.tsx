@@ -27,6 +27,13 @@ const escapeHtml = (s: string) =>
 const aiTextToHtml = (s: string) =>
   escapeHtml(s).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />');
 
+// WhatsApp del visitante: solo dígitos; 8 dígitos de Bolivia (6xxxxxxx o 7xxxxxxx) llevan el 591.
+const normalizeWhatsapp = (raw: string): string | null => {
+  const d = raw.replace(/\D/g, '');
+  if (/^[67]\d{7}$/.test(d)) return `591${d}`;
+  return d.length >= 10 && d.length <= 15 ? d : null;
+};
+
 // Identificador anónimo de la conversación (solo en esta pestaña): no es el teléfono ni un dato personal.
 const CHAT_SID_KEY = 'cadis_chat_sid';
 const getChatSessionId = (): string => {
@@ -112,6 +119,21 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
   // Conversación con VictoriA (IA real, vía /api/chat -> n8n): se activa al terminar el flujo guiado o con su botón
   const [aiMode, setAiMode] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
+  const [aiNombre, setAiNombre] = useState(() => {
+    try { return sessionStorage.getItem('cadis_chat_nombre') || ''; } catch { return ''; }
+  });
+  const [aiWhatsapp, setAiWhatsapp] = useState(() => {
+    try { return sessionStorage.getItem('cadis_chat_wa') || ''; } catch { return ''; }
+  });
+  const whatsappValido = aiWhatsapp.trim() === '' ? null : normalizeWhatsapp(aiWhatsapp);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('cadis_chat_nombre', aiNombre);
+      sessionStorage.setItem('cadis_chat_wa', aiWhatsapp);
+    } catch {
+      /* ignorar */
+    }
+  }, [aiNombre, aiWhatsapp]);
 
   // Single official CADIS WhatsApp number (Santa Cruz, Bolivia) — see src/config/contact.ts
   const WHATSAPP_PHONE = CADIS_WHATSAPP_NUMBER;
@@ -390,7 +412,12 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: getChatSessionId(), message: text.slice(0, 500) }),
+        body: JSON.stringify({
+          sessionId: getChatSessionId(),
+          message: text.slice(0, 500),
+          nombre: aiNombre.trim().slice(0, 60) || undefined,
+          whatsapp: whatsappValido || undefined
+        }),
         signal: controller.signal
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -787,7 +814,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
                       type="button"
                       onClick={() =>
                         startAiMode(
-                          '¡Hola! Soy VictoriA, la asistente virtual (IA) de CADIS. Pregúntame lo que quieras sobre precios, cuotas y requisitos. Para agendar una visita o reservar, te paso con una persona por WhatsApp.'
+                          '¡Hola! Soy VictoriA, la asistente virtual (IA) de CADIS. Pregúntame lo que quieras sobre precios, cuotas y requisitos. Si quieres agendar una visita, deja tu nombre y WhatsApp en el recuadro de abajo y yo te registro.'
                         )
                       }
                       className="tap w-full text-left p-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-between transition-all shadow-2xs cursor-pointer"
@@ -818,17 +845,56 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
           </div>
 
           {aiMode && (
-            <div className="px-3 py-2 bg-emerald-50 border-t border-emerald-100 flex items-center justify-between gap-2 shrink-0">
-              <span className="text-[11px] text-emerald-900 font-medium leading-tight">
-                ¿Prefieres hablar con una persona?
-              </span>
-              <button
-                type="button"
-                onClick={continueOnWhatsApp}
-                className="tap text-[11px] font-extrabold text-white bg-[#25D366] hover:bg-[#20bd5a] rounded-lg px-2.5 py-1.5 cursor-pointer shrink-0"
-              >
-                Continuar por WhatsApp
-              </button>
+            <div className="px-3 pt-2 pb-2.5 bg-emerald-50 border-t border-emerald-100 space-y-1.5 shrink-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] text-emerald-900 font-semibold leading-tight">
+                  Para agendar una visita, deja tus datos:
+                </span>
+                <button
+                  type="button"
+                  onClick={continueOnWhatsApp}
+                  className="tap text-[11px] font-extrabold text-white bg-[#25D366] hover:bg-[#20bd5a] rounded-lg px-2.5 py-1.5 cursor-pointer shrink-0"
+                >
+                  Ir a WhatsApp
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <input
+                  type="text"
+                  value={aiNombre}
+                  onChange={(e) => setAiNombre(e.target.value)}
+                  maxLength={60}
+                  autoComplete="name"
+                  aria-label="Tu nombre"
+                  placeholder="Tu nombre"
+                  className="tap px-2.5 py-1.5 text-xs rounded-lg bg-white border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-[#25D366] text-slate-800"
+                />
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  value={aiWhatsapp}
+                  onChange={(e) => setAiWhatsapp(e.target.value)}
+                  maxLength={20}
+                  autoComplete="tel"
+                  aria-label="Tu WhatsApp"
+                  aria-invalid={aiWhatsapp.trim() !== '' && !whatsappValido}
+                  placeholder="Tu WhatsApp"
+                  className={`tap px-2.5 py-1.5 text-xs rounded-lg bg-white border focus:outline-none focus:ring-2 text-slate-800 ${
+                    aiWhatsapp.trim() !== '' && !whatsappValido
+                      ? 'border-red-400 focus:ring-red-400'
+                      : 'border-emerald-200 focus:ring-[#25D366]'
+                  }`}
+                />
+              </div>
+              {aiWhatsapp.trim() !== '' && !whatsappValido ? (
+                <p className="text-[11px] text-red-700 leading-tight">
+                  Revisa tu número: 8 dígitos (ej. 71234567) o con código de país.
+                </p>
+              ) : (
+                <p className="text-[11px] text-emerald-800/80 leading-tight">
+                  Solo para que un asesor te contacte. No lo compartimos.
+                </p>
+              )}
             </div>
           )}
 

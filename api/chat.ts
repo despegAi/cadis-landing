@@ -55,12 +55,24 @@ export default async function handler(req: Req, res: Res) {
   if (!webhook) return res.status(503).json({ error: 'chat_no_configurado' });
 
   const body = (typeof req.body === 'string' ? safeParse(req.body) : req.body) as
-    | { sessionId?: unknown; message?: unknown }
+    | { sessionId?: unknown; message?: unknown; nombre?: unknown; whatsapp?: unknown }
     | undefined;
   const sessionId = typeof body?.sessionId === 'string' ? body.sessionId : '';
   const message = typeof body?.message === 'string' ? body.message.trim() : '';
   if (!SESSION_RE.test(sessionId) || message.length < 1 || message.length > MAX_MESSAGE) {
     return res.status(400).json({ error: 'solicitud_invalida' });
+  }
+
+  // Datos opcionales para agendar: el WhatsApp se normaliza (8 dígitos de Bolivia -> 591...)
+  const nombre =
+    typeof body?.nombre === 'string' ? body.nombre.replace(/[^\p{L}\p{N} .'-]/gu, '').trim().slice(0, 60) : '';
+  let whatsapp = '';
+  if (typeof body?.whatsapp === 'string' && body.whatsapp.trim() !== '') {
+    const digits = body.whatsapp.replace(/\D/g, '');
+    whatsapp = /^[67]\d{7}$/.test(digits) ? `591${digits}` : digits;
+    if (whatsapp.length < 10 || whatsapp.length > 15) {
+      return res.status(400).json({ error: 'whatsapp_invalido' });
+    }
   }
 
   if (tooMany(clientIp(req))) return res.status(429).json({ error: 'demasiados_mensajes' });
@@ -69,7 +81,7 @@ export default async function handler(req: Req, res: Res) {
     const r = await fetch(webhook, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, message }),
+      body: JSON.stringify({ sessionId, message, nombre, whatsapp }),
       signal: AbortSignal.timeout(28000)
     });
     if (!r.ok) return res.status(502).json({ error: 'victoria_no_disponible' });
