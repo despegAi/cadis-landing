@@ -55,7 +55,7 @@ export default async function handler(req: Req, res: Res) {
   if (!webhook) return res.status(503).json({ error: 'chat_no_configurado' });
 
   const body = (typeof req.body === 'string' ? safeParse(req.body) : req.body) as
-    | { sessionId?: unknown; message?: unknown; nombre?: unknown; whatsapp?: unknown }
+    | { sessionId?: unknown; message?: unknown; nombre?: unknown; whatsapp?: unknown; modo?: unknown }
     | undefined;
   const sessionId = typeof body?.sessionId === 'string' ? body.sessionId : '';
   const message = typeof body?.message === 'string' ? body.message.trim() : '';
@@ -75,13 +75,16 @@ export default async function handler(req: Req, res: Res) {
     }
   }
 
+  // Modo reclutamiento ("Trabaja con nosotros"): se marca el mensaje para que VictoriA siga ese flujo.
+  const texto = body?.modo === 'reclutamiento' ? `[RECLUTAMIENTO] ${message}` : message;
+
   if (tooMany(clientIp(req))) return res.status(429).json({ error: 'demasiados_mensajes' });
 
   try {
     const r = await fetch(webhook, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId, message, nombre, whatsapp }),
+      body: JSON.stringify({ sessionId, message: texto, nombre, whatsapp }),
       signal: AbortSignal.timeout(28000)
     });
     if (!r.ok) return res.status(502).json({ error: 'victoria_no_disponible' });
