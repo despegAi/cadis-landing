@@ -164,7 +164,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
         return `¡Hola! 🚐 Organizamos **visitas guiadas gratuitas todos los Sábados y Domingos** rumbo a Limoncito (Proyecto Río Bonito). Contamos con transporte ida y vuelta y refrigerio para ti y tu familia. ¿Para qué día te gustaría asegurar cupos?`;
 
       case 'vendor_agent':
-        return `¡Hola! 💼 Te damos la bienvenida al canal de **Asesores y Vendedores Independientes de CADIS**. Ofrecemos altas comisiones (hasta 8% por mini quinta), material publicitario y capacitaciones continuas. ¿En qué ciudad resides para enviarte el kit comercial?`;
+        return `¡Hola! 💼 Te damos la bienvenida al canal de **Asesores y Vendedores Independientes de CADIS**. Ofrecemos una comisión del 5% del precio de venta por cada mini quinta vendida, material publicitario y capacitaciones continuas. ¿En qué ciudad resides para enviarte el kit comercial?`;
 
       case 'general_inquiry':
       default:
@@ -245,7 +245,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
         return [
           {
             id: 'vend-1',
-            title: 'Conocer tabla de comisiones (hasta 8%)',
+            title: 'Conocer la comisión (5% por venta)',
             text: '¡Hola! Me gustaría conocer el esquema de comisiones y beneficios para asesores inmobiliarios independientes de CADIS.'
           },
           {
