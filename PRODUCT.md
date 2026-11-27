@@ -50,4 +50,4 @@ Datos reales de propiedades, ingresos/egresos, comisiones y gastos viven en los 
 2. Excel es la fuente de verdad operativa hoy; cualquier trabajo de UI/datos debe respetar ese flujo de importación en vez de asumir Supabase como base viva.
 3. Doble audiencia con objetivos distintos: la experiencia pública prioriza persuasión y conversión (modo Persuade); el panel admin prioriza eficiencia operativa para el equipo interno (modo Operate).
 4. Es una operación en venta activa con datos y clientes reales — no fabricar cifras, disponibilidad ni testimonios.
-5. El chat flotante y el simulador son flujos guiados con respuestas predefinidas, no IA real — no describirlos como inteligencia artificial en copy ni en código.
+5. El simulador y las preguntas guiadas del chat flotante son flujos con respuestas predefinidas (no IA). Desde 2026-11-26 el chat también tiene un modo "VictoriA" que sí es IA (n8n vía `/api/chat`): llamarlo siempre "asistente virtual (IA)" y nunca hacerlo pasar por una persona. Solo informa; para agendar o reservar deriva a WhatsApp.

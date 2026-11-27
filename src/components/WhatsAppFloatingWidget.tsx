@@ -21,6 +21,38 @@ import { Property, ChatInteractionLog } from '../types';
 import { CADIS_WHATSAPP_NUMBER, CADIS_WHATSAPP_DISPLAY } from '../config/contact';
 import { SiteImage } from './SiteImage';
 
+// Texto de VictoriA (IA): se escapa antes de mostrarlo como HTML (solo **negrita** y saltos de línea).
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const aiTextToHtml = (s: string) =>
+  escapeHtml(s).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br />');
+
+// WhatsApp del visitante: solo dígitos; 8 dígitos de Bolivia (6xxxxxxx o 7xxxxxxx) llevan el 591.
+const normalizeWhatsapp = (raw: string): string | null => {
+  const d = raw.replace(/\D/g, '');
+  if (/^[67]\d{7}$/.test(d)) return `591${d}`;
+  return d.length >= 10 && d.length <= 15 ? d : null;
+};
+
+// Identificador anónimo de la conversación (solo en esta pestaña): no es el teléfono ni un dato personal.
+const CHAT_SID_KEY = 'cadis_chat_sid';
+const getChatSessionId = (): string => {
+  try {
+    const saved = sessionStorage.getItem(CHAT_SID_KEY);
+    if (saved) return saved;
+  } catch {
+    /* sin almacenamiento: se usa un id nuevo por visita */
+  }
+  const raw = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}${Math.random().toString(36).slice(2)}`;
+  const id = raw.replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
+  try {
+    sessionStorage.setItem(CHAT_SID_KEY, id);
+  } catch {
+    /* ignorar */
+  }
+  return id;
+};
+
 // Texto público: siempre "mini quinta", nunca "lote".
 const nombreMiniQuinta = (raw?: string) => {
   const code = (raw || '').replace(/^\s*lote\s*/i, '').trim();
@@ -57,6 +89,7 @@ interface ChatMessage {
   text: string;
   time: string;
   isAutomated?: boolean;
+  isAi?: boolean;
 }
 
 export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
@@ -82,6 +115,25 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
   const [tieneCreditoPropio, setTieneCreditoPropio] = useState<'si' | 'no' | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+  // Conversación con VictoriA (IA real, vía /api/chat -> n8n): se activa al terminar el flujo guiado o con su botón
+  const [aiMode, setAiMode] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiNombre, setAiNombre] = useState(() => {
+    try { return sessionStorage.getItem('cadis_chat_nombre') || ''; } catch { return ''; }
+  });
+  const [aiWhatsapp, setAiWhatsapp] = useState(() => {
+    try { return sessionStorage.getItem('cadis_chat_wa') || ''; } catch { return ''; }
+  });
+  const whatsappValido = aiWhatsapp.trim() === '' ? null : normalizeWhatsapp(aiWhatsapp);
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('cadis_chat_nombre', aiNombre);
+      sessionStorage.setItem('cadis_chat_wa', aiWhatsapp);
+    } catch {
+      /* ignorar */
+    }
+  }, [aiNombre, aiWhatsapp]);
 
   // Single official CADIS WhatsApp number (Santa Cruz, Bolivia) — see src/config/contact.ts
   const WHATSAPP_PHONE = CADIS_WHATSAPP_NUMBER;
@@ -134,7 +186,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
         return `¡Hola! 🚐 Organizamos **visitas guiadas gratuitas todos los Sábados y Domingos** rumbo a Limoncito (Proyecto Río Bonito). Contamos con transporte ida y vuelta y refrigerio para ti y tu familia. ¿Para qué día te gustaría asegurar cupos?`;
 
       case 'vendor_agent':
-        return `¡Hola! 💼 Te damos la bienvenida al canal de **Asesores y Vendedores Independientes de CADIS**. Ofrecemos altas comisiones (hasta 8% por mini quinta), material publicitario y capacitaciones continuas. ¿En qué ciudad resides para enviarte el kit comercial?`;
+        return `¡Hola! 💼 Te damos la bienvenida al canal de **Asesores y Vendedores Independientes de CADIS**. Ofrecemos una comisión del 5% del precio de venta por cada mini quinta vendida, material publicitario y capacitaciones continuas. ¿En qué ciudad resides para enviarte el kit comercial?`;
 
       case 'general_inquiry':
       default:
@@ -215,7 +267,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
         return [
           {
             id: 'vend-1',
-            title: 'Conocer tabla de comisiones (hasta 8%)',
+            title: 'Conocer la comisión (5% por venta)',
             text: '¡Hola! Me gustaría conocer el esquema de comisiones y beneficios para asesores inmobiliarios independientes de CADIS.'
           },
           {
@@ -261,6 +313,8 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
       setPendingMessage(null);
       setPresupuestoConfirmado(null);
       setTieneCreditoPropio(null);
+      setAiMode(false);
+      setAiBusy(false);
 
       const timer = setTimeout(() => {
         setIsTyping(false);
@@ -286,7 +340,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [chatMessages, isTyping, isOpen]);
+  }, [chatMessages, isTyping, aiBusy, isOpen]);
 
   // Builds the final WhatsApp message (with qualifying answers, if any), logs the interaction
   // for the admin mini-CRM, and opens the WhatsApp handoff link.
@@ -340,11 +394,69 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
     }, 400);
   };
 
+  const nowLabel = () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+  const startAiMode = (greeting: string) => {
+    setAiMode(true);
+    setChatMessages((prev) => [
+      ...prev,
+      { id: `ai-hello-${Date.now()}`, sender: 'bot', text: greeting, time: nowLabel(), isAi: true }
+    ]);
+  };
+
+  const askVictoria = async (text: string) => {
+    setAiBusy(true);
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 40000);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: getChatSessionId(),
+          message: text.slice(0, 500),
+          nombre: aiNombre.trim().slice(0, 60) || undefined,
+          whatsapp: whatsappValido || undefined
+        }),
+        signal: controller.signal
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = (await res.json()) as { reply?: string };
+      const reply = (data.reply || '').trim();
+      if (!reply) throw new Error('respuesta vacía');
+      setChatMessages((prev) => [
+        ...prev,
+        { id: `ai-${Date.now()}`, sender: 'bot', text: reply, time: nowLabel(), isAi: true }
+      ]);
+    } catch {
+      setChatMessages((prev) => [
+        ...prev,
+        {
+          id: `ai-err-${Date.now()}`,
+          sender: 'bot',
+          text: 'Ahora mismo no puedo responder desde aquí. Escríbenos por WhatsApp y un asesor te atiende.',
+          time: nowLabel(),
+          isAi: true
+        }
+      ]);
+    } finally {
+      clearTimeout(timeout);
+      setAiBusy(false);
+    }
+  };
+
+  // Pasa la conversación a una persona por WhatsApp (usa el último mensaje del visitante)
+  const continueOnWhatsApp = () => {
+    const lastUser = [...chatMessages].reverse().find((m) => m.sender === 'user')?.text;
+    dispatchToWhatsApp(lastUser || 'Quiero hablar con un asesor de CADIS.', presupuestoConfirmado, tieneCreditoPropio);
+  };
+
   // Format and dispatch WhatsApp Message — routes through a 2-question guided
   // qualifying flow first for lot/credit/tour intents (no AI, just predefined chips).
   const handleSend = (textToSend?: string) => {
     const rawMessage = textToSend || customMessage.trim();
     if (!rawMessage) return;
+    if (aiMode && aiBusy) return;
 
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -358,6 +470,11 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
 
     setChatMessages((prev) => [...prev, userMsg]);
     setCustomMessage('');
+
+    if (aiMode) {
+      askVictoria(rawMessage);
+      return;
+    }
 
     if (QUALIFYING_INTENTS.includes(activeIntent) && qualifierStep === 0) {
       setPendingMessage(rawMessage);
@@ -417,6 +534,9 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
     dispatchToWhatsApp(finalMessage, presupuestoConfirmado, value);
     setQualifierStep(0);
     setPendingMessage(null);
+    startAiMode(
+      'Te abrí WhatsApp con tu consulta. Si te queda alguna duda mientras tanto, pregúntame aquí: soy VictoriA, la asistente virtual (IA) de CADIS.'
+    );
   };
 
   const intentTabs: Array<{
@@ -502,11 +622,11 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
               <div className="flex items-center gap-1.5 truncate">
                 <Bot className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
                 <span className="font-semibold truncate">
-                  Asistente Guiado CADIS
+                  {aiMode ? 'VictoriA · asistente virtual de CADIS' : 'Asistente Guiado CADIS'}
                 </span>
               </div>
               <span className="text-[10px] bg-emerald-800/80 px-2 py-0.5 rounded-full border border-emerald-500/40 shrink-0 font-bold">
-                Flujo Guiado
+                {aiMode ? 'IA' : 'Flujo Guiado'}
               </span>
             </div>
           </div>
@@ -562,7 +682,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
             {/* Simulated Typing Indicator */}
-            {isTyping && (
+            {(isTyping || aiBusy) && (
               <div className="relative z-10 max-w-[70%] bg-white rounded-2xl rounded-tl-xs p-3 shadow-xs border border-slate-200 text-slate-600 flex items-center gap-2">
                 <div className="flex items-center gap-1">
                   <span className="w-2 h-2 rounded-full bg-emerald-600 animate-bounce [animation-delay:-0.3s]" />
@@ -589,8 +709,13 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
                   <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-1">
                     <span className="text-[11px] font-extrabold text-emerald-800 flex items-center gap-1">
                       <Bot className="w-3 h-3 text-emerald-600" />
-                      Asistente CADIS
+                      {msg.isAi ? 'VictoriA' : 'Asistente CADIS'}
                     </span>
+                    {msg.isAi && (
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-1.5 py-0.2 rounded border border-sky-200">
+                        IA
+                      </span>
+                    )}
                     {msg.isAutomated && (
                       <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
                         Mensaje Predefinido
@@ -602,7 +727,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
                 <div 
                   className="text-xs leading-relaxed"
                   dangerouslySetInnerHTML={{
-                    __html: msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    __html: msg.isAi ? aiTextToHtml(msg.text) : msg.text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
                   }}
                 />
 
@@ -663,7 +788,7 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
             )}
 
             {/* Predefined Quick Consultation Buttons based on detected intent */}
-            {!isTyping && qualifierStep === 0 && (
+            {!isTyping && !aiMode && qualifierStep === 0 && (
               <div className="relative z-10 space-y-2 pt-1">
                 <div className="flex items-center justify-between px-1">
                   <span className="text-[10px] uppercase font-black tracking-wider text-slate-600">
@@ -684,6 +809,23 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
+                  {activeIntent !== 'vendor_agent' && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        startAiMode(
+                          '¡Hola! Soy VictoriA, la asistente virtual (IA) de CADIS. Pregúntame lo que quieras sobre precios, cuotas y requisitos. Si quieres agendar una visita, deja tu nombre y WhatsApp en el recuadro de abajo y yo te registro.'
+                        )
+                      }
+                      className="tap w-full text-left p-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold flex items-center justify-between transition-all shadow-2xs cursor-pointer"
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        Preguntarle a VictoriA (asistente IA)
+                      </span>
+                      <ChevronRight className="w-3.5 h-3.5 shrink-0" />
+                    </button>
+                  )}
                   {currentQuickOptions.map((q) => (
                     <button
                       key={q.id}
@@ -702,6 +844,60 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
             <div ref={messagesEndRef} />
           </div>
 
+          {aiMode && (
+            <div className="px-3 pt-2 pb-2.5 bg-emerald-50 border-t border-emerald-100 space-y-1.5 shrink-0">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[11px] text-emerald-900 font-semibold leading-tight">
+                  Para agendar una visita, deja tus datos:
+                </span>
+                <button
+                  type="button"
+                  onClick={continueOnWhatsApp}
+                  className="tap text-[11px] font-extrabold text-white bg-[#25D366] hover:bg-[#20bd5a] rounded-lg px-2.5 py-1.5 cursor-pointer shrink-0"
+                >
+                  Ir a WhatsApp
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <input
+                  type="text"
+                  value={aiNombre}
+                  onChange={(e) => setAiNombre(e.target.value)}
+                  maxLength={60}
+                  autoComplete="name"
+                  aria-label="Tu nombre"
+                  placeholder="Tu nombre"
+                  className="tap px-2.5 py-1.5 text-xs rounded-lg bg-white border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-[#25D366] text-slate-800"
+                />
+                <input
+                  type="tel"
+                  inputMode="tel"
+                  value={aiWhatsapp}
+                  onChange={(e) => setAiWhatsapp(e.target.value)}
+                  maxLength={20}
+                  autoComplete="tel"
+                  aria-label="Tu WhatsApp"
+                  aria-invalid={aiWhatsapp.trim() !== '' && !whatsappValido}
+                  placeholder="Tu WhatsApp"
+                  className={`tap px-2.5 py-1.5 text-xs rounded-lg bg-white border focus:outline-none focus:ring-2 text-slate-800 ${
+                    aiWhatsapp.trim() !== '' && !whatsappValido
+                      ? 'border-red-400 focus:ring-red-400'
+                      : 'border-emerald-200 focus:ring-[#25D366]'
+                  }`}
+                />
+              </div>
+              {aiWhatsapp.trim() !== '' && !whatsappValido ? (
+                <p className="text-[11px] text-red-700 leading-tight">
+                  Revisa tu número: 8 dígitos (ej. 71234567) o con código de país.
+                </p>
+              ) : (
+                <p className="text-[11px] text-emerald-800/80 leading-tight">
+                  Solo para que un asesor te contacte. No lo compartimos.
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Input & Send Footer */}
           <div className="p-2.5 sm:p-3 bg-white border-t border-slate-100 flex items-center gap-2 shrink-0">
             <label htmlFor="whatsapp-widget-message" className="sr-only">Mensaje de WhatsApp</label>
@@ -716,8 +912,12 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
                   handleSend();
                 }
               }}
+              maxLength={500}
+              disabled={aiBusy}
               placeholder={
-                activeIntent === 'lot_inquiry'
+                aiMode
+                  ? 'Escribe tu pregunta para VictoriA...'
+                  : activeIntent === 'lot_inquiry'
                   ? `Preguntar sobre ${selectedProperty?.loteNumero || selectedLotNumber}...`
                   : activeIntent === 'credit_simulation'
                   ? 'Consultar sobre tu plan de cuotas...'
@@ -730,9 +930,10 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
             <button
               type="button"
               onClick={() => handleSend()}
-              className="p-3.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md transition-transform hover:scale-105 active:scale-95 cursor-pointer shrink-0"
-              title="Abrir en WhatsApp oficial"
-              aria-label="Enviar mensaje a WhatsApp"
+              className="p-3.5 rounded-xl bg-[#25D366] hover:bg-[#20bd5a] text-white shadow-md transition-transform hover:scale-105 active:scale-95 cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={aiBusy}
+              title={aiMode ? 'Enviar a VictoriA' : 'Abrir en WhatsApp oficial'}
+              aria-label={aiMode ? 'Enviar mensaje a VictoriA' : 'Enviar mensaje a WhatsApp'}
             >
               <Send className="w-4 h-4" />
             </button>
