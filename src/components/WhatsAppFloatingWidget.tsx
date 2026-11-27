@@ -19,7 +19,6 @@ import {
 } from 'lucide-react';
 import { Property, ChatInteractionLog } from '../types';
 import { CADIS_WHATSAPP_NUMBER, CADIS_WHATSAPP_DISPLAY } from '../config/contact';
-import { SiteImage } from './SiteImage';
 
 // Texto de VictoriA (IA): se escapa antes de mostrarlo como HTML (solo **negrita** y saltos de línea).
 const escapeHtml = (s: string) =>
@@ -585,11 +584,11 @@ export const WhatsAppFloatingWidget: React.FC<WhatsAppFloatingWidgetProps> = ({
               <div className="flex items-center gap-3">
                 {/* Agent Avatar with Verified Badge */}
                 <div className="relative">
-                  <div className="w-11 h-11 rounded-full bg-emerald-800 border-2 border-white flex items-center justify-center font-black text-sm text-white shadow-sm overflow-hidden">
-                    <SiteImage
-                      slot="asesoraFoto"
-                      alt="Asesora CADIS"
-                      className="w-full h-full object-cover"
+                  <div className="w-11 h-11 rounded-full bg-white border-2 border-white flex items-center justify-center shadow-sm overflow-hidden">
+                    <img
+                      src="/assets/cadis_logotipo_tc.png"
+                      alt="CADIS"
+                      className="w-full h-full object-contain p-0.5"
                     />
                   </div>
                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full" />
